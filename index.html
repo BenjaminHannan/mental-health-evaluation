@@ -186,6 +186,17 @@
     .data-panel p { font-size: .8rem; color: var(--gray-700); margin-bottom: .75rem; }
     pre.data-preview { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: .75rem; font-size: .72rem; overflow-x: auto; max-height: 200px; overflow-y: auto; color: var(--gray-700); }
 
+    /* Remote submit indicator */
+    .submit-pulse { display: none; align-items: center; gap: .4rem; font-size: .75rem; color: var(--gray-500); }
+    .submit-pulse.show { display: flex; }
+    @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.2s ease-in-out infinite; }
+
+    /* Privacy notice */
+    .privacy-note { font-size: .74rem; color: var(--gray-500); margin-top: .6rem; line-height: 1.5; }
+    .privacy-note a { color: var(--blue); text-decoration: none; }
+    .privacy-note a:hover { text-decoration: underline; }
+
     @media (max-width: 600px) { .search-card { padding: 1.25rem 1rem; } .form-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -351,10 +362,23 @@
       <div class="search-actions">
         <button type="submit" class="btn-primary" id="search-btn">Find Providers</button>
         <button type="button" class="btn-secondary" id="reset-btn">Reset</button>
+        <div class="submit-pulse" id="submit-pulse">
+          <div class="pulse-dot"></div> Sending…
+        </div>
         <div class="ml-status">
           <div class="ml-dot" id="ml-dot"></div>
           <span id="ml-status-text">ML model: not loaded</span>
         </div>
+      </div>
+      <p class="privacy-note">
+        🔒 Your search inputs and provider ratings are shared anonymously with the site admin to improve results.
+        No names, emails, or identifying information are collected.
+        <a href="#" id="privacy-toggle">What's collected?</a>
+      </p>
+      <div id="privacy-detail" style="display:none;font-size:.74rem;color:var(--gray-500);margin-top:.4rem;line-height:1.6;border-left:3px solid var(--blue-light);padding-left:.75rem">
+        Collected per search: zip code, insurance type, age group, telehealth preference, urgency, session format, language, concerns, modalities, and cultural/accessibility needs.<br>
+        Collected per rating: provider ID, star rating (1–5), and the search filters from that session.<br>
+        Data is used only to improve provider matching and train the ML model.
       </div>
     </form>
   </div>
@@ -1144,6 +1168,39 @@ function scoreProvider(p, f) {
 
 window.ML_MODEL = null;
 
+// ═══════════════════════════════════════════════════
+//  REMOTE SUBMISSION  — paste your endpoint URL below
+//  Option A (Google Sheets): deploy ml/apps_script.js as a Google Apps
+//    Script Web App and paste the /exec URL here.
+//  Option B (Formspree): create a form at formspree.io and paste
+//    the https://formspree.io/f/XXXXXXX URL here.
+// ═══════════════════════════════════════════════════
+
+const SUBMIT_ENDPOINT = '';  // ← your endpoint URL here
+
+function showPulse(ms = 1800) {
+  const el = document.getElementById('submit-pulse');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+async function submitData(payload) {
+  if (!SUBMIT_ENDPOINT) return;
+  showPulse();
+  try {
+    await fetch(SUBMIT_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',   // required for Google Apps Script; Formspree uses cors
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...payload,
+        ts: new Date().toISOString(),
+        ua: navigator.userAgent.substring(0, 80),
+      }),
+    });
+  } catch (_) { /* fail silently — never block the user */ }
+}
+
 async function loadMLModel() {
   try {
     const res = await fetch('ml/model_weights.json', { signal: AbortSignal.timeout(3000) });
@@ -1463,6 +1520,7 @@ function showResults(results, filters, samhsaLoaded, samhsaCount) {
       const rating = parseInt(star.dataset.rating);
       const score = parseInt(star.closest('.provider-card').dataset.score);
       logRating(id, filters, score, rating);
+      submitData({ type: 'rating', providerId: id, rating, score, filters: currentFilters });  // ← send rating
       const group = document.getElementById(`stars-${id}`);
       group.querySelectorAll('.star').forEach((s,i) => { s.classList.toggle('lit', i < rating); });
       setTimeout(() => group.classList.remove('show'), 600);
@@ -1559,6 +1617,7 @@ document.getElementById('search-form').addEventListener('submit', async e => {
   const filters = getFilters();
   if (filters.zip && !/^\d{5}$/.test(filters.zip)) { alert('Please enter a valid 5-digit zip code.'); return; }
   currentFilters = filters;
+  submitData({ type: 'search', filters });   // ← send inputs to endpoint
   document.getElementById('loading').classList.add('active');
   document.getElementById('results-section').classList.remove('active');
   ['samhsa-notice','samhsa-error','ml-notice'].forEach(id => document.getElementById(id).classList.remove('active'));
@@ -1608,6 +1667,15 @@ buildPills('modalities-grid',   MODALITIES_LIST,  'selected-green');
 buildPills('cultural-grid',     CULTURAL_LIST,    'selected-purple');
 buildPills('accessibility-grid',ACCESSIBILITY_LIST,'selected-teal');
 loadMLModel();
+
+// Privacy detail toggle
+document.getElementById('privacy-toggle').addEventListener('click', e => {
+  e.preventDefault();
+  const d = document.getElementById('privacy-detail');
+  const shown = d.style.display !== 'none';
+  d.style.display = shown ? 'none' : 'block';
+  e.target.textContent = shown ? 'What\'s collected?' : 'Hide';
+});
 </script>
 </body>
 </html>
