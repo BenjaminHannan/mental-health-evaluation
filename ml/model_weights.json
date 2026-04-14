@@ -1,0 +1,37 @@
+{
+  "version": "placeholder",
+  "model_type": "placeholder",
+  "note": "Run ml/train.py after collecting interaction data to replace this file with trained weights.",
+  "feature_names": [
+    "insurance_match",
+    "insurance_partial",
+    "age_match",
+    "concerns_overlap",
+    "telehealth_match",
+    "crisis_match",
+    "language_match",
+    "gender_match",
+    "modality_overlap",
+    "cultural_overlap",
+    "is_cmhc",
+    "is_fqhc",
+    "is_crisis_center",
+    "accepts_medicaid",
+    "accepts_uninsured",
+    "has_telehealth",
+    "has_crisis_services",
+    "urgency_is_crisis",
+    "urgency_is_urgent",
+    "user_uninsured",
+    "evening_hours",
+    "walk_in"
+  ],
+  "weights": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  "bias": 0.0,
+  "scaler": {
+    "mean": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "std":  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  },
+  "training_samples": 0,
+  "train_rmse": null
+}

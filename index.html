@@ -4,471 +4,193 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upper Valley Mental Health Finder | NH &amp; VT</title>
-  <meta name="description" content="Find mental health providers in the Upper Valley region of New Hampshire and Vermont. Search by insurance, age group, telehealth preference, and more.">
+  <meta name="description" content="Find mental health providers in the Upper Valley region of New Hampshire and Vermont.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --blue-dark: #1a4971;
-      --blue: #2471a3;
-      --blue-light: #d6eaf8;
-      --green-dark: #1a6b3c;
-      --green: #27ae60;
-      --green-light: #d5f5e3;
-      --amber: #e67e22;
-      --amber-light: #fdebd0;
-      --red: #c0392b;
-      --red-light: #fadbd8;
-      --gray-50: #f8fafc;
-      --gray-100: #f1f5f9;
-      --gray-200: #e2e8f0;
-      --gray-300: #cbd5e1;
-      --gray-500: #64748b;
-      --gray-700: #334155;
-      --gray-900: #0f172a;
-      --radius: 10px;
-      --radius-sm: 6px;
+      --blue-dark: #1a4971; --blue: #2471a3; --blue-light: #d6eaf8;
+      --green-dark: #1a6b3c; --green: #27ae60; --green-light: #d5f5e3;
+      --amber: #e67e22; --amber-light: #fdebd0;
+      --red: #c0392b; --red-light: #fadbd8;
+      --purple: #6c3483; --purple-light: #e8daef;
+      --teal: #0e6655; --teal-light: #d0ece7;
+      --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1; --gray-500: #64748b; --gray-700: #334155; --gray-900: #0f172a;
+      --radius: 10px; --radius-sm: 6px;
       --shadow: 0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
       --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
       --shadow-lg: 0 10px 15px rgba(0,0,0,.08), 0 4px 6px rgba(0,0,0,.05);
     }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-900); line-height: 1.6; min-height: 100vh; }
 
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--gray-50);
-      color: var(--gray-900);
-      line-height: 1.6;
-      min-height: 100vh;
-    }
-
-    /* ── Crisis Banner ── */
-    .crisis-banner {
-      background: var(--red);
-      color: #fff;
-      text-align: center;
-      padding: .6rem 1rem;
-      font-size: .875rem;
-      font-weight: 500;
-    }
+    /* Crisis Banner */
+    .crisis-banner { background: var(--red); color: #fff; text-align: center; padding: .6rem 1rem; font-size: .875rem; font-weight: 500; }
     .crisis-banner a { color: #ffe8e6; font-weight: 700; text-decoration: none; }
     .crisis-banner a:hover { text-decoration: underline; }
 
-    /* ── Header ── */
-    header {
-      background: var(--blue-dark);
-      color: #fff;
-      padding: 2rem 1.5rem 1.8rem;
-      text-align: center;
-    }
-    header .badge {
-      display: inline-block;
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 20px;
-      padding: .25rem .85rem;
-      font-size: .75rem;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      margin-bottom: .8rem;
-    }
+    /* Header */
+    header { background: var(--blue-dark); color: #fff; padding: 2rem 1.5rem 1.8rem; text-align: center; }
+    header .badge { display: inline-block; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 20px; padding: .25rem .85rem; font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-bottom: .8rem; }
     header h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 700; line-height: 1.25; }
     header p { margin-top: .5rem; color: #a8c8e8; font-size: .95rem; max-width: 560px; margin-inline: auto; }
 
-    /* ── Main layout ── */
-    .container { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
+    /* Layout */
+    .container { max-width: 920px; margin: 0 auto; padding: 0 1.25rem; }
 
-    /* ── Search Card ── */
-    .search-card {
-      background: #fff;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-      padding: 1.75rem 1.5rem 1.5rem;
-      margin: 1.75rem auto;
-      max-width: 900px;
-    }
-    .search-card h2 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--blue-dark);
-      margin-bottom: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-    }
-    .search-card h2::before { content: '🔍'; font-size: 1rem; }
+    /* Search Card */
+    .search-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 1.75rem 1.5rem 1.5rem; margin: 1.75rem auto; }
+    .section-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--blue); border-bottom: 2px solid var(--blue-light); padding-bottom: .4rem; margin-bottom: .9rem; }
+    .form-section { margin-bottom: 1.4rem; }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1rem;
-    }
-    .form-group { display: flex; flex-direction: column; gap: .35rem; }
-    .form-group.full-width { grid-column: 1 / -1; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .85rem; }
+    .form-group { display: flex; flex-direction: column; gap: .3rem; }
+    .form-group.span2 { grid-column: span 2; }
+    @media (max-width: 500px) { .form-group.span2 { grid-column: span 1; } }
 
-    label {
-      font-size: .8rem;
-      font-weight: 600;
-      color: var(--gray-700);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
+    label { font-size: .78rem; font-weight: 600; color: var(--gray-700); text-transform: uppercase; letter-spacing: .04em; }
     input[type="text"], select {
-      width: 100%;
-      padding: .55rem .75rem;
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: .9rem;
-      color: var(--gray-900);
-      background: #fff;
-      transition: border-color .15s;
-      appearance: none;
-      -webkit-appearance: none;
+      width: 100%; padding: .52rem .72rem; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+      font-family: inherit; font-size: .88rem; color: var(--gray-900); background: #fff;
+      transition: border-color .15s; appearance: none; -webkit-appearance: none;
     }
-    input[type="text"]:focus, select:focus {
-      outline: none;
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(36,113,163,.15);
-    }
+    input[type="text"]:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(36,113,163,.15); }
 
-    /* Concerns checkboxes */
-    .concerns-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .45rem;
-      margin-top: .1rem;
+    /* Pill Groups */
+    .pill-grid { display: flex; flex-wrap: wrap; gap: .38rem; margin-top: .1rem; }
+    .pill {
+      display: inline-flex; align-items: center; gap: .25rem;
+      background: var(--gray-100); border: 1.5px solid var(--gray-200);
+      border-radius: 20px; padding: .28rem .65rem; cursor: pointer;
+      font-size: .8rem; font-weight: 500; transition: all .15s; user-select: none;
     }
-    .concern-pill {
-      display: flex;
-      align-items: center;
-      gap: .3rem;
-      background: var(--gray-100);
-      border: 1.5px solid var(--gray-200);
-      border-radius: 20px;
-      padding: .3rem .7rem;
-      cursor: pointer;
-      transition: all .15s;
-      font-size: .82rem;
-      font-weight: 500;
-      user-select: none;
-    }
-    .concern-pill input { display: none; }
-    .concern-pill:hover { border-color: var(--blue); background: var(--blue-light); }
-    .concern-pill.selected {
-      background: var(--blue-light);
-      border-color: var(--blue);
-      color: var(--blue-dark);
-    }
+    .pill input { display: none; }
+    .pill:hover { border-color: var(--blue); background: var(--blue-light); }
+    .pill.selected { background: var(--blue-light); border-color: var(--blue); color: var(--blue-dark); }
+    .pill.selected-green { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+    .pill.selected-purple { background: var(--purple-light); border-color: var(--purple); color: var(--purple); }
+    .pill.selected-teal { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
 
-    .search-actions {
-      display: flex;
-      gap: .75rem;
-      margin-top: 1.25rem;
-      flex-wrap: wrap;
-    }
-    .btn-primary {
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: .65rem 1.5rem;
-      font-family: inherit;
-      font-size: .92rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .15s, transform .1s;
-    }
+    /* Buttons */
+    .search-actions { display: flex; gap: .75rem; margin-top: 1.35rem; flex-wrap: wrap; align-items: center; }
+    .btn-primary { background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); padding: .65rem 1.5rem; font-family: inherit; font-size: .92rem; font-weight: 600; cursor: pointer; transition: background .15s, transform .1s; }
     .btn-primary:hover { background: var(--blue-dark); }
     .btn-primary:active { transform: scale(.98); }
     .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; }
-
-    .btn-secondary {
-      background: var(--gray-100);
-      color: var(--gray-700);
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-sm);
-      padding: .65rem 1.25rem;
-      font-family: inherit;
-      font-size: .92rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background .15s;
-    }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: .65rem 1.25rem; font-family: inherit; font-size: .9rem; font-weight: 500; cursor: pointer; transition: background .15s; }
     .btn-secondary:hover { background: var(--gray-200); }
+    .btn-ghost { background: none; color: var(--gray-500); border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: .5rem 1rem; font-family: inherit; font-size: .82rem; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .btn-ghost:hover { color: var(--blue); border-color: var(--blue); }
+    .ml-status { font-size: .78rem; color: var(--gray-500); display: flex; align-items: center; gap: .35rem; }
+    .ml-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-300); flex-shrink: 0; }
+    .ml-dot.loaded { background: var(--green); }
 
-    /* ── Loading ── */
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 2.5rem 1rem;
-      color: var(--gray-500);
-    }
+    /* Loading */
+    .loading { display: none; text-align: center; padding: 2.5rem 1rem; color: var(--gray-500); }
     .loading.active { display: block; }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--gray-200);
-      border-top-color: var(--blue);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      margin: 0 auto .85rem;
-    }
+    .spinner { width: 34px; height: 34px; border: 3px solid var(--gray-200); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto .85rem; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Results ── */
+    /* Results */
     #results-section { display: none; }
     #results-section.active { display: block; }
+    .results-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; }
+    .results-header h2 { font-size: 1.05rem; font-weight: 600; color: var(--gray-700); }
+    .results-meta { font-size: .82rem; color: var(--gray-500); }
 
-    .results-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: .75rem;
-      margin-bottom: 1rem;
-    }
-    .results-header h2 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--gray-700);
-    }
-    .results-meta {
-      font-size: .82rem;
-      color: var(--gray-500);
-    }
+    .notice { border-radius: var(--radius-sm); padding: .6rem .9rem; font-size: .82rem; margin-bottom: .85rem; display: none; }
+    .notice.active { display: block; }
+    .notice-green { background: var(--green-light); border: 1px solid #a9dfbf; color: var(--green-dark); }
+    .notice-amber { background: var(--amber-light); border: 1px solid #f0c97c; color: #7d5a00; }
+    .notice-purple { background: var(--purple-light); border: 1px solid #c39bd3; color: var(--purple); }
 
-    .samhsa-notice {
-      background: var(--green-light);
-      border: 1px solid #a9dfbf;
-      border-radius: var(--radius-sm);
-      padding: .6rem .9rem;
-      font-size: .82rem;
-      color: var(--green-dark);
-      margin-bottom: 1rem;
-      display: none;
-    }
-    .samhsa-notice.active { display: block; }
-    .samhsa-error {
-      background: var(--amber-light);
-      border: 1px solid #f0c97c;
-      border-radius: var(--radius-sm);
-      padding: .6rem .9rem;
-      font-size: .82rem;
-      color: #7d5a00;
-      margin-bottom: 1rem;
-      display: none;
-    }
-    .samhsa-error.active { display: block; }
+    /* Provider Card */
+    .provider-card { background: #fff; border: 1.5px solid var(--gray-200); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.15rem 1.15rem .9rem; margin-bottom: .8rem; transition: box-shadow .15s, border-color .15s; cursor: pointer; position: relative; }
+    .provider-card:hover { box-shadow: var(--shadow-md); border-color: var(--blue); }
+    .provider-card.crisis-provider { border-left: 4px solid var(--red); }
+    .card-top { display: flex; gap: .9rem; align-items: flex-start; }
 
-    /* ── Provider Card ── */
-    .provider-card {
-      background: #fff;
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.25rem 1.25rem 1rem;
-      margin-bottom: .85rem;
-      transition: box-shadow .15s, border-color .15s;
-      cursor: pointer;
-      position: relative;
-    }
-    .provider-card:hover {
-      box-shadow: var(--shadow-md);
-      border-color: var(--blue);
-    }
-    .provider-card.crisis-provider {
-      border-left: 4px solid var(--red);
-    }
-
-    .card-top {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-    }
-
-    .score-badge {
-      flex-shrink: 0;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: .9rem;
-      line-height: 1;
-    }
-    .score-badge .score-label {
-      font-size: .6rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-top: 1px;
-    }
+    .score-badge { flex-shrink: 0; width: 50px; height: 50px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: .88rem; line-height: 1; }
+    .score-badge .score-label { font-size: .58rem; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-top: 1px; }
     .score-high { background: var(--green-light); color: var(--green-dark); }
     .score-mid  { background: var(--blue-light);  color: var(--blue-dark); }
     .score-low  { background: var(--gray-100);    color: var(--gray-500); }
-    .score-na   { background: var(--gray-100);    color: var(--gray-500); }
 
     .card-info { flex: 1; min-width: 0; }
-    .card-info h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--gray-900);
-      margin-bottom: .2rem;
-    }
-    .provider-type {
-      font-size: .78rem;
-      font-weight: 500;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: .45rem;
-    }
+    .card-info h3 { font-size: .97rem; font-weight: 600; color: var(--gray-900); margin-bottom: .15rem; }
+    .provider-type { font-size: .75rem; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; margin-bottom: .4rem; }
 
-    .card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .35rem;
-      margin-bottom: .55rem;
-    }
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: .25rem;
-      border-radius: 20px;
-      padding: .18rem .55rem;
-      font-size: .74rem;
-      font-weight: 600;
-    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .45rem; }
+    .tag { display: inline-flex; align-items: center; gap: .2rem; border-radius: 20px; padding: .15rem .5rem; font-size: .72rem; font-weight: 600; }
     .tag-green  { background: var(--green-light); color: var(--green-dark); }
     .tag-blue   { background: var(--blue-light);  color: var(--blue-dark); }
     .tag-amber  { background: var(--amber-light); color: #7d4a00; }
     .tag-red    { background: var(--red-light);   color: var(--red); }
     .tag-gray   { background: var(--gray-100);    color: var(--gray-500); }
+    .tag-purple { background: var(--purple-light); color: var(--purple); }
+    .tag-teal   { background: var(--teal-light);   color: var(--teal); }
 
-    .card-address {
-      font-size: .82rem;
-      color: var(--gray-500);
-      display: flex;
-      align-items: flex-start;
-      gap: .3rem;
-    }
+    .card-address { font-size: .8rem; color: var(--gray-500); }
 
-    .card-expand {
-      display: none;
-      border-top: 1px solid var(--gray-200);
-      margin-top: 1rem;
-      padding-top: 1rem;
-    }
-    .card-expand.open { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    @media (max-width: 500px) { .card-expand.open { grid-template-columns: 1fr; } }
+    .card-expand { display: none; border-top: 1px solid var(--gray-200); margin-top: .9rem; padding-top: .9rem; }
+    .card-expand.open { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+    @media (max-width: 480px) { .card-expand.open { grid-template-columns: 1fr; } }
 
-    .expand-item { font-size: .84rem; }
-    .expand-item strong {
-      display: block;
-      font-size: .75rem;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      color: var(--gray-500);
-      margin-bottom: .2rem;
-    }
+    .expand-item { font-size: .83rem; }
+    .expand-item strong { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--gray-500); margin-bottom: .15rem; }
     .expand-item a { color: var(--blue); text-decoration: none; }
     .expand-item a:hover { text-decoration: underline; }
 
-    .score-bar-wrap { grid-column: 1 / -1; }
-    .score-bar-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: .78rem;
-      color: var(--gray-500);
-      margin-bottom: .3rem;
-    }
-    .score-bar-bg {
-      background: var(--gray-200);
-      border-radius: 4px;
-      height: 6px;
-      overflow: hidden;
-    }
-    .score-bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width .4s ease;
-    }
-    .score-bar-fill.high { background: var(--green); }
-    .score-bar-fill.mid  { background: var(--blue); }
-    .score-bar-fill.low  { background: var(--gray-300); }
+    .score-breakdown-wrap { grid-column: 1 / -1; }
+    .score-bar-label { display: flex; justify-content: space-between; font-size: .76rem; color: var(--gray-500); margin-bottom: .25rem; }
+    .score-bar-bg { background: var(--gray-200); border-radius: 4px; height: 6px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+    .fill-high { background: var(--green); } .fill-mid { background: var(--blue); } .fill-low { background: var(--gray-300); }
 
-    .card-chevron {
-      position: absolute;
-      top: 1.1rem;
-      right: 1rem;
-      color: var(--gray-300);
-      font-size: .85rem;
-      transition: transform .2s;
-    }
+    .score-factors { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+    .sf { background: var(--gray-100); border-radius: 4px; padding: .2rem .5rem; font-size: .72rem; color: var(--gray-700); }
+    .sf.match   { background: var(--green-light); color: var(--green-dark); }
+    .sf.partial { background: var(--amber-light); color: #7d4a00; }
+    .sf.miss    { background: var(--red-light);   color: var(--red); }
+
+    .ml-badge { position: absolute; top: .65rem; right: 2.4rem; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--purple-light); color: var(--purple); border-radius: 3px; padding: .08rem .35rem; }
+    .source-samhsa { position: absolute; top: .65rem; right: 2.4rem; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: #e8f4fd; color: #1565c0; border-radius: 3px; padding: .08rem .35rem; }
+
+    .card-chevron { position: absolute; top: 1rem; right: .85rem; color: var(--gray-300); font-size: .82rem; transition: transform .2s; }
     .provider-card.expanded .card-chevron { transform: rotate(180deg); }
 
-    /* ── Score breakdown ── */
-    .score-breakdown {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: .4rem;
-      margin-top: .3rem;
-    }
-    .score-factor {
-      background: var(--gray-100);
-      border-radius: var(--radius-sm);
-      padding: .25rem .55rem;
-      font-size: .75rem;
-      color: var(--gray-700);
-    }
-    .score-factor.match { background: var(--green-light); color: var(--green-dark); }
-    .score-factor.partial { background: var(--amber-light); color: #7d4a00; }
-    .score-factor.miss { background: var(--red-light); color: var(--red); }
+    /* Interaction buttons */
+    .card-actions { grid-column: 1 / -1; display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .25rem; }
+    .action-btn { padding: .4rem .85rem; border-radius: var(--radius-sm); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: all .15s; }
+    .action-call { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+    .action-call:hover { background: var(--green); color: #fff; }
+    .action-web  { background: var(--blue-light);  border-color: var(--blue); color: var(--blue-dark); }
+    .action-web:hover  { background: var(--blue);  color: #fff; }
+    .action-rate { background: var(--gray-100); border-color: var(--gray-300); color: var(--gray-700); }
+    .action-rate:hover { background: var(--amber-light); border-color: var(--amber); color: #7d4a00; }
+    .rate-stars { display: none; gap: .2rem; align-items: center; }
+    .rate-stars.show { display: flex; }
+    .star { font-size: 1.3rem; cursor: pointer; color: var(--gray-300); transition: color .1s; }
+    .star:hover, .star.lit { color: var(--amber); }
 
-    /* ── Footer ── */
-    footer {
-      background: var(--gray-900);
-      color: #94a3b8;
-      text-align: center;
-      padding: 1.5rem 1rem;
-      font-size: .8rem;
-      margin-top: 2.5rem;
-    }
+    /* Footer */
+    footer { background: var(--gray-900); color: #94a3b8; text-align: center; padding: 1.5rem 1rem; font-size: .8rem; margin-top: 2.5rem; }
     footer a { color: #7dd3fc; text-decoration: none; }
     footer strong { color: #e2e8f0; }
 
-    /* ── Responsive ── */
-    @media (max-width: 600px) {
-      .search-card { padding: 1.25rem 1rem; }
-      .form-grid { grid-template-columns: 1fr; }
-    }
+    /* Data export panel */
+    .data-panel { background: var(--purple-light); border: 1px solid #c39bd3; border-radius: var(--radius); padding: 1rem 1.25rem; margin-top: 1.5rem; display: none; }
+    .data-panel.active { display: block; }
+    .data-panel h3 { font-size: .88rem; font-weight: 600; color: var(--purple); margin-bottom: .5rem; }
+    .data-panel p { font-size: .8rem; color: var(--gray-700); margin-bottom: .75rem; }
+    pre.data-preview { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: .75rem; font-size: .72rem; overflow-x: auto; max-height: 200px; overflow-y: auto; color: var(--gray-700); }
 
-    /* ── Source badge ── */
-    .source-samhsa {
-      position: absolute;
-      top: .75rem;
-      right: 2.5rem;
-      font-size: .68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      background: #e8f4fd;
-      color: #1565c0;
-      border-radius: 3px;
-      padding: .1rem .4rem;
-    }
+    @media (max-width: 600px) { .search-card { padding: 1.25rem 1rem; } .form-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-<!-- ── Crisis Banner ── -->
 <div class="crisis-banner" role="alert">
   <strong>Crisis?</strong>
   Call or text <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline) &nbsp;|&nbsp;
@@ -476,7 +198,6 @@
   Text HOME to <a href="sms:741741">741741</a>
 </div>
 
-<!-- ── Header ── -->
 <header>
   <div class="badge">Upper Valley &mdash; NH &amp; VT</div>
   <h1>Mental Health Resource Finder</h1>
@@ -484,26 +205,24 @@
 </header>
 
 <main>
-  <div class="container">
+<div class="container">
 
-    <!-- ── Search Form ── -->
-    <div class="search-card" id="search-card">
-      <h2>Find Your Match</h2>
-      <form id="search-form" novalidate>
+  <div class="search-card" id="search-card">
+    <form id="search-form" novalidate>
+
+      <!-- Section 1: Location & Basics -->
+      <div class="form-section">
+        <div class="section-label">Location &amp; Coverage</div>
         <div class="form-grid">
-
           <div class="form-group">
             <label for="zip">Zip Code</label>
-            <input type="text" id="zip" name="zip" placeholder="e.g. 03766" maxlength="5" pattern="\d{5}"
-                   aria-describedby="zip-hint">
-            <span id="zip-hint" style="font-size:.75rem;color:var(--gray-500)">Upper Valley: 03755–03784, 05001–05091</span>
+            <input type="text" id="zip" placeholder="e.g. 03766" maxlength="5" pattern="\d{5}">
           </div>
-
           <div class="form-group">
             <label for="insurance">Insurance</label>
-            <select id="insurance" name="insurance">
+            <select id="insurance">
               <option value="any">Any / Don't know</option>
-              <option value="medicaid">Medicaid / NH Medicaid / VT Medicaid</option>
+              <option value="medicaid">Medicaid (NH or VT)</option>
               <option value="medicare">Medicare</option>
               <option value="bcbs">Blue Cross Blue Shield</option>
               <option value="cigna">Cigna</option>
@@ -512,14 +231,14 @@
               <option value="tufts">Tufts Health Plan</option>
               <option value="harvard_pilgrim">Harvard Pilgrim</option>
               <option value="mvp">MVP Health Care (VT)</option>
+              <option value="va_benefits">VA Benefits</option>
               <option value="sliding_scale">Sliding scale / self-pay</option>
               <option value="uninsured">Uninsured</option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="age_group">Age Group</label>
-            <select id="age_group" name="age_group">
+            <select id="age_group">
               <option value="any">Any</option>
               <option value="child">Child (0–12)</option>
               <option value="teen">Teen (13–17)</option>
@@ -527,99 +246,221 @@
               <option value="older_adult">Older Adult (65+)</option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="telehealth">Telehealth</label>
-            <select id="telehealth" name="telehealth">
+            <select id="telehealth">
               <option value="any">No preference</option>
               <option value="required">Telehealth required</option>
               <option value="preferred">Telehealth preferred</option>
               <option value="in_person">In-person only</option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="urgency">Urgency</label>
-            <select id="urgency" name="urgency">
+            <select id="urgency">
               <option value="exploring">Exploring options</option>
               <option value="routine">Routine (weeks OK)</option>
               <option value="urgent">Urgent (need soon)</option>
               <option value="crisis">Crisis / emergency</option>
             </select>
           </div>
-
-          <div class="form-group full-width">
-            <label>Concerns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500)">(select all that apply)</span></label>
-            <div class="concerns-grid" id="concerns-grid" role="group" aria-label="Mental health concerns">
-              <!-- Pills injected by JS -->
-            </div>
+          <div class="form-group">
+            <label for="session_format">Session Format</label>
+            <select id="session_format">
+              <option value="any">Any</option>
+              <option value="individual">Individual therapy</option>
+              <option value="couples">Couples / relationship</option>
+              <option value="family">Family therapy</option>
+              <option value="group">Group therapy</option>
+            </select>
           </div>
-
         </div>
-
-        <div class="search-actions">
-          <button type="submit" class="btn-primary" id="search-btn">Find Providers</button>
-          <button type="button" class="btn-secondary" id="reset-btn">Reset</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- ── Loading ── -->
-    <div class="loading" id="loading" aria-live="polite">
-      <div class="spinner"></div>
-      <p>Searching local database &amp; querying SAMHSA…</p>
-    </div>
-
-    <!-- ── Results ── -->
-    <section id="results-section" aria-live="polite">
-      <div class="results-header">
-        <h2 id="results-count">Results</h2>
-        <span class="results-meta" id="results-meta"></span>
       </div>
-      <div id="samhsa-notice" class="samhsa-notice"></div>
-      <div id="samhsa-error" class="samhsa-error"></div>
-      <div id="results-list"></div>
-    </section>
 
-  </div><!-- /container -->
+      <!-- Section 2: Provider Preferences -->
+      <div class="form-section">
+        <div class="section-label">Provider Preferences</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="language">Language</label>
+            <select id="language">
+              <option value="any">Any</option>
+              <option value="english">English</option>
+              <option value="spanish">Spanish</option>
+              <option value="french">French</option>
+              <option value="other">Other (call to confirm)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="provider_gender">Provider Gender Pref.</label>
+            <select id="provider_gender">
+              <option value="any">No preference</option>
+              <option value="woman">Woman</option>
+              <option value="man">Man</option>
+              <option value="nonbinary">Non-binary</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="prior_treatment">Prior Treatment</label>
+            <select id="prior_treatment">
+              <option value="any">Prefer not to say</option>
+              <option value="none">No prior treatment</option>
+              <option value="some">Some past treatment</option>
+              <option value="ongoing">Currently in treatment</option>
+              <option value="switching">Switching providers</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="frequency">Frequency Preference</label>
+            <select id="frequency">
+              <option value="any">No preference</option>
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Every 2 weeks</option>
+              <option value="monthly">Monthly</option>
+              <option value="as_needed">As needed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Concerns -->
+      <div class="form-section">
+        <div class="section-label">Concerns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);font-size:.78rem">(select all that apply)</span></div>
+        <div class="pill-grid" id="concerns-grid" role="group" aria-label="Mental health concerns"></div>
+      </div>
+
+      <!-- Section 4: Therapy Modalities -->
+      <div class="form-section">
+        <div class="section-label">Therapy Approach <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);font-size:.78rem">(optional)</span></div>
+        <div class="pill-grid" id="modalities-grid" role="group" aria-label="Therapy modalities"></div>
+      </div>
+
+      <!-- Section 5: Identity & Accessibility -->
+      <div class="form-section">
+        <div class="section-label">Identity &amp; Access Needs <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);font-size:.78rem">(optional)</span></div>
+        <div style="margin-bottom:.6rem">
+          <div style="font-size:.75rem;font-weight:600;color:var(--gray-700);margin-bottom:.4rem">Cultural / Identity</div>
+          <div class="pill-grid" id="cultural-grid" role="group" aria-label="Cultural and identity preferences"></div>
+        </div>
+        <div>
+          <div style="font-size:.75rem;font-weight:600;color:var(--gray-700);margin-bottom:.4rem">Accessibility</div>
+          <div class="pill-grid" id="accessibility-grid" role="group" aria-label="Accessibility needs"></div>
+        </div>
+      </div>
+
+      <div class="search-actions">
+        <button type="submit" class="btn-primary" id="search-btn">Find Providers</button>
+        <button type="button" class="btn-secondary" id="reset-btn">Reset</button>
+        <div class="ml-status">
+          <div class="ml-dot" id="ml-dot"></div>
+          <span id="ml-status-text">ML model: not loaded</span>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading" aria-live="polite">
+    <div class="spinner"></div>
+    <p>Searching local database &amp; querying SAMHSA…</p>
+  </div>
+
+  <!-- Results -->
+  <section id="results-section" aria-live="polite">
+    <div class="results-header">
+      <h2 id="results-count">Results</h2>
+      <div style="display:flex;gap:.6rem;align-items:center">
+        <span class="results-meta" id="results-meta"></span>
+        <button class="btn-ghost" id="export-btn" style="display:none">⬇ Export training data</button>
+      </div>
+    </div>
+    <div id="samhsa-notice"  class="notice notice-green"></div>
+    <div id="samhsa-error"   class="notice notice-amber"></div>
+    <div id="ml-notice"      class="notice notice-purple"></div>
+    <div id="results-list"></div>
+  </section>
+
+  <!-- Training Data Export Panel -->
+  <div class="data-panel" id="data-panel">
+    <h3>🤖 ML Training Data</h3>
+    <p>Copy this JSON and save it to <code>ml/data/interactions.json</code>, then run <code>python ml/train.py</code> to retrain the model. Deploy the updated <code>ml/model_weights.json</code> alongside <code>index.html</code>.</p>
+    <pre class="data-preview" id="data-preview"></pre>
+    <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap">
+      <button class="btn-primary" id="copy-data-btn">Copy JSON</button>
+      <button class="btn-secondary" id="clear-data-btn">Clear stored data</button>
+      <button class="btn-ghost" id="close-panel-btn">Close</button>
+    </div>
+  </div>
+
+</div>
 </main>
 
 <footer>
   <strong>Upper Valley Mental Health Finder</strong><br>
-  Data sourced from local provider knowledge and the
+  Data from local provider knowledge and the
   <a href="https://findtreatment.samhsa.gov" target="_blank" rel="noopener">SAMHSA Treatment Locator</a>.
-  This tool is for informational purposes only — always call to confirm availability, hours, and insurance acceptance.
-  <br><br>
-  <strong>988</strong> Suicide &amp; Crisis Lifeline &nbsp;|&nbsp; <strong>211</strong> NH/VT Social Services
+  For informational purposes only — always call to confirm availability, hours, and insurance acceptance.<br><br>
+  <strong>988</strong> Suicide &amp; Crisis Lifeline &nbsp;|&nbsp; <strong>211</strong> NH/VT Social Services &nbsp;|&nbsp;
+  <a href="ml/train.py" download>Download training script</a>
 </footer>
 
 <script>
-// ════════════════════════════════════════════════════════
-//  CONSTANTS
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  OPTION LISTS
+// ═══════════════════════════════════════════════════
 
 const CONCERNS_LIST = [
-  { id: 'depression',         label: '😔 Depression' },
-  { id: 'anxiety',            label: '😰 Anxiety' },
-  { id: 'trauma',             label: '💔 Trauma / PTSD' },
-  { id: 'bipolar',            label: '🔄 Bipolar' },
-  { id: 'schizophrenia',      label: '🧠 Psychosis / Schizophrenia' },
-  { id: 'adhd',               label: '⚡ ADHD' },
-  { id: 'ocd',                label: '🔁 OCD' },
-  { id: 'eating_disorder',    label: '🍽️ Eating Disorder' },
-  { id: 'substance_use',      label: '🚫 Substance Use' },
-  { id: 'suicidal_ideation',  label: '⚠️ Suicidal Thoughts' },
-  { id: 'grief',              label: '🕊️ Grief / Loss' },
-  { id: 'family',             label: '👨‍👩‍👧 Family / Relationship' },
-  { id: 'lgbtq',              label: '🏳️‍🌈 LGBTQ+ Affirming' },
-  { id: 'veteran',            label: '🎖️ Veteran / Military' },
-  { id: 'chronic_illness',    label: '🩺 Chronic Illness' },
-  { id: 'crisis',             label: '🆘 Immediate Crisis' },
+  { id: 'depression',        label: '😔 Depression' },
+  { id: 'anxiety',           label: '😰 Anxiety' },
+  { id: 'trauma',            label: '💔 Trauma / PTSD' },
+  { id: 'bipolar',           label: '🔄 Bipolar' },
+  { id: 'schizophrenia',     label: '🧠 Psychosis' },
+  { id: 'adhd',              label: '⚡ ADHD' },
+  { id: 'ocd',               label: '🔁 OCD' },
+  { id: 'eating_disorder',   label: '🍽️ Eating Disorder' },
+  { id: 'substance_use',     label: '🚫 Substance Use' },
+  { id: 'suicidal_ideation', label: '⚠️ Suicidal Thoughts' },
+  { id: 'grief',             label: '🕊️ Grief / Loss' },
+  { id: 'family',            label: '👨‍👩‍👧 Family / Relationship' },
+  { id: 'lgbtq',             label: '🏳️‍🌈 LGBTQ+ Issues' },
+  { id: 'veteran',           label: '🎖️ Veteran / Military' },
+  { id: 'chronic_illness',   label: '🩺 Chronic Illness' },
+  { id: 'crisis',            label: '🆘 Immediate Crisis' },
 ];
 
-// ════════════════════════════════════════════════════════
-//  SEEDED PROVIDERS  (~25 Upper Valley NH/VT)
-// ════════════════════════════════════════════════════════
+const MODALITIES_LIST = [
+  { id: 'cbt',          label: 'CBT' },
+  { id: 'dbt',          label: 'DBT' },
+  { id: 'emdr',         label: 'EMDR' },
+  { id: 'psychodynamic',label: 'Psychodynamic' },
+  { id: 'mi',           label: 'Motivational Interviewing' },
+  { id: 'act',          label: 'ACT' },
+  { id: 'somatic',      label: 'Somatic' },
+  { id: 'med_mgmt',     label: 'Medication Mgmt' },
+  { id: 'group',        label: 'Group Therapy' },
+  { id: 'family_tx',    label: 'Family Therapy' },
+];
+
+const CULTURAL_LIST = [
+  { id: 'lgbtq_affirming',  label: '🏳️‍🌈 LGBTQ+ affirming' },
+  { id: 'bipoc_provider',   label: '✊ BIPOC provider preferred' },
+  { id: 'veteran_friendly', label: '🎖️ Veteran-friendly' },
+  { id: 'faith_based',      label: '🙏 Faith-based / spiritual' },
+  { id: 'feminist',         label: '♀ Feminist therapy' },
+  { id: 'bilingual',        label: '🌎 Bilingual staff' },
+];
+
+const ACCESSIBILITY_LIST = [
+  { id: 'wheelchair',     label: '♿ Wheelchair accessible' },
+  { id: 'transit',        label: '🚌 Public transit nearby' },
+  { id: 'evening',        label: '🌙 Evening/weekend hours' },
+  { id: 'sliding_scale',  label: '💵 Sliding scale / free' },
+  { id: 'walk_in',        label: '🚶 Walk-in available' },
+];
+
+// ═══════════════════════════════════════════════════
+//  PROVIDER DATABASE  (25 seeded Upper Valley NH/VT)
+// ═══════════════════════════════════════════════════
 
 const PROVIDERS = [
   {
@@ -627,15 +468,19 @@ const PROVIDERS = [
     name: 'West Central Behavioral Health',
     type: 'Community Mental Health Center',
     address: '251 Elm St, Claremont, NH 03743',
-    phone: '(603) 448-0126',
-    crisis: '(603) 448-0126',
+    phone: '(603) 448-0126', crisis: '(603) 448-0126',
     website: 'https://wcbh.org',
-    zip: '03743',
-    state: 'NH',
+    zip: '03743', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','suicidal_ideation','grief','adhd','family','crisis'],
+    modalities: ['cbt','dbt','mi','med_mgmt','group','family_tx'],
+    languages: ['english','spanish'],
+    providerGenders: ['woman','man','nonbinary'],
+    formats: ['individual','family','group'],
+    cultural: ['lgbtq_affirming','veteran_friendly','bilingual'],
+    accessibility: ['wheelchair','transit','sliding_scale','walk_in'],
     notes: 'Primary CMHC for Sullivan and Grafton counties. 24/7 crisis line. Multiple NH locations.',
     waitTime: '1–2 weeks',
   },
@@ -646,12 +491,17 @@ const PROVIDERS = [
     address: '46 Centerra Pkwy, Lebanon, NH 03766',
     phone: '(603) 653-3710',
     website: 'https://www.dartmouth-hitchcock.org/behavioral-health',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','tufts','harvard_pilgrim'],
     ageGroups: ['teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','ocd','eating_disorder','adhd','suicidal_ideation'],
+    modalities: ['cbt','dbt','emdr','psychodynamic','med_mgmt','act'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: ['lgbtq_affirming'],
+    accessibility: ['wheelchair','transit'],
     notes: 'Academic medical center psychiatry & psychology. Specialized programs and medication management.',
     waitTime: '2–4 weeks',
   },
@@ -660,16 +510,20 @@ const PROVIDERS = [
     name: 'Headrest Inc.',
     type: 'Crisis Center & Counseling',
     address: '14 School St, Lebanon, NH 03766',
-    phone: '(603) 448-4400',
-    crisis: '(603) 448-4400',
+    phone: '(603) 448-4400', crisis: '(603) 448-4400',
     website: 'https://headrest.org',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['sliding_scale','uninsured'],
     ageGroups: ['teen','adult'],
     telehealth: false, inPerson: true, crisisServices: true, acceptingNew: true,
-    concerns: ['substance_use','suicidal_ideation','depression','anxiety','crisis','grief','housing'],
-    notes: 'Drop-in crisis center and 24-hour hotline. Serves all Upper Valley residents regardless of ability to pay.',
+    concerns: ['substance_use','suicidal_ideation','depression','anxiety','crisis','grief'],
+    modalities: ['mi','cbt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: ['lgbtq_affirming'],
+    accessibility: ['walk_in','sliding_scale','transit'],
+    notes: 'Drop-in crisis center and 24-hour hotline. Serves all regardless of ability to pay.',
     waitTime: 'Walk-in welcome',
   },
   {
@@ -677,16 +531,20 @@ const PROVIDERS = [
     name: 'Health Care & Rehabilitation Services (HCRS)',
     type: 'Community Mental Health Center',
     address: '49 School St, White River Junction, VT 05001',
-    phone: '(802) 295-3031',
-    crisis: '(802) 295-3031',
+    phone: '(802) 295-3031', crisis: '(802) 295-3031',
     website: 'https://hcrs.org',
-    zip: '05001',
-    state: 'VT',
+    zip: '05001', state: 'VT',
     insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','suicidal_ideation','family','grief','crisis'],
-    notes: 'Vermont-designated CMHC for Windsor and Windham counties. ACT teams and crisis stabilization.',
+    modalities: ['cbt','dbt','mi','med_mgmt','group','family_tx','act'],
+    languages: ['english'],
+    providerGenders: ['woman','man','nonbinary'],
+    formats: ['individual','family','group'],
+    cultural: ['lgbtq_affirming','veteran_friendly'],
+    accessibility: ['wheelchair','transit','sliding_scale','walk_in'],
+    notes: 'Vermont-designated CMHC for Windsor and Windham counties. ACT teams, crisis stabilization.',
     waitTime: '1–3 weeks',
   },
   {
@@ -694,15 +552,19 @@ const PROVIDERS = [
     name: 'Clara Martin Center',
     type: 'Community Mental Health Center',
     address: '11 Main St, Randolph, VT 05060',
-    phone: '(802) 728-4466',
-    crisis: '(802) 728-4466',
+    phone: '(802) 728-4466', crisis: '(802) 728-4466',
     website: 'https://claramartin.org',
-    zip: '05060',
-    state: 'VT',
+    zip: '05060', state: 'VT',
     insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','family','grief','adhd'],
+    modalities: ['cbt','dbt','mi','med_mgmt','group','family_tx'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual','family','group'],
+    cultural: ['lgbtq_affirming'],
+    accessibility: ['wheelchair','sliding_scale'],
     notes: 'Vermont-designated CMHC for Orange County. Child, adult, and older adult programs.',
     waitTime: '2–4 weeks',
   },
@@ -713,28 +575,38 @@ const PROVIDERS = [
     address: '44 S. Main St, Randolph, VT 05060',
     phone: '(802) 728-7000',
     website: 'https://giffordmed.org/services/behavioral-health',
-    zip: '05060',
-    state: 'VT',
+    zip: '05060', state: 'VT',
     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','mvp'],
     ageGroups: ['adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','grief','chronic_illness','adhd'],
-    notes: 'Integrated behavioral health embedded in primary care. Warm handoffs same day.',
+    modalities: ['cbt','psychodynamic','mi'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair','transit'],
+    notes: 'Integrated behavioral health in primary care. Warm handoffs same-day.',
     waitTime: '2–3 weeks',
   },
   {
     id: 'apd-bh',
-    name: 'Alice Peck Day Memorial Hospital – Behavioral Health',
+    name: 'Alice Peck Day Memorial Hospital – BH',
     type: 'Hospital-Based Outpatient',
     address: '10 School St, Lebanon, NH 03766',
     phone: '(603) 448-3121',
     website: 'https://www.alicepeckday.org',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','tufts'],
     ageGroups: ['adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','grief','chronic_illness','family'],
+    modalities: ['cbt','psychodynamic'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair','transit'],
     notes: 'Behavioral health integrated with primary care. Geriatric mental health specialty.',
     waitTime: '2–4 weeks',
   },
@@ -745,30 +617,39 @@ const PROVIDERS = [
     address: '243 Elm St, Claremont, NH 03743',
     phone: '(603) 542-7771',
     website: 'https://www.valleyregional.org',
-    zip: '03743',
-    state: 'NH',
+    zip: '03743', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','sliding_scale'],
     ageGroups: ['teen','adult','older_adult'],
     telehealth: false, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['crisis','suicidal_ideation','depression','bipolar','schizophrenia'],
+    modalities: ['med_mgmt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair','walk_in'],
     notes: 'Emergency psychiatric evaluation and inpatient stabilization. ED available 24/7.',
     waitTime: 'Emergency walk-in',
   },
   {
     id: 'wise',
     name: 'WISE – Women\'s Information Service',
-    type: 'Trauma / DV Counseling',
+    type: 'Trauma & DV Counseling',
     address: '100 Hanover St Ste 1, Lebanon, NH 03766',
-    phone: '(603) 448-5525',
-    crisis: '(603) 448-5525',
+    phone: '(603) 448-5525', crisis: '(603) 448-5525',
     website: 'https://wise-uppervalley.org',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['sliding_scale','uninsured'],
     ageGroups: ['teen','adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['trauma','depression','anxiety','family','crisis','lgbtq'],
-    notes: 'Confidential support for domestic violence and sexual assault survivors. All genders welcome.',
+    modalities: ['emdr','cbt','somatic','psychodynamic'],
+    languages: ['english'],
+    providerGenders: ['woman','nonbinary'],
+    formats: ['individual','group'],
+    cultural: ['lgbtq_affirming','feminist'],
+    accessibility: ['transit','sliding_scale','walk_in'],
+    notes: 'Confidential support for DV and SA survivors. All genders welcome.',
     waitTime: 'Usually within 1 week',
   },
   {
@@ -778,12 +659,17 @@ const PROVIDERS = [
     address: '18 Hanover St, Lebanon, NH 03766',
     phone: '(603) 448-1010',
     website: 'https://cfsnhvermont.org',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['medicaid','bcbs','cigna','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','family','adhd','grief'],
+    modalities: ['cbt','family_tx','psychodynamic'],
+    languages: ['english','spanish'],
+    providerGenders: ['woman','man'],
+    formats: ['individual','family'],
+    cultural: ['bilingual'],
+    accessibility: ['transit','sliding_scale'],
     notes: 'Therapy and family support for children, teens, and parents. Bilingual services available.',
     waitTime: '2–3 weeks',
   },
@@ -794,12 +680,17 @@ const PROVIDERS = [
     address: '32 S. Canaan Rd, Canaan, NH 03741',
     phone: '(603) 523-7800',
     website: 'https://mascomavalleyhealthcare.org',
-    zip: '03741',
-    state: 'NH',
+    zip: '03741', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','cigna','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','substance_use','chronic_illness','adhd','family'],
+    modalities: ['cbt','mi','med_mgmt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair','sliding_scale'],
     notes: 'FQHC with integrated behavioral health. Sliding fee scale. Serves uninsured patients.',
     waitTime: '1–2 weeks',
   },
@@ -810,12 +701,17 @@ const PROVIDERS = [
     address: '100 River St, Springfield, VT 05156',
     phone: '(802) 885-4500',
     website: 'https://smcsvt.org',
-    zip: '05156',
-    state: 'VT',
+    zip: '05156', state: 'VT',
     insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','substance_use','chronic_illness','family','adhd'],
+    modalities: ['cbt','mi','med_mgmt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair','sliding_scale'],
     notes: 'FQHC serving Windsor County VT. Integrated behavioral health with sliding fee scale.',
     waitTime: '1–3 weeks',
   },
@@ -826,12 +722,17 @@ const PROVIDERS = [
     address: '32 Pleasant St, Woodstock, VT 05091',
     phone: '(802) 457-3555',
     website: 'https://ottauquecheehealth.org',
-    zip: '05091',
-    state: 'VT',
+    zip: '05091', state: 'VT',
     insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale'],
     ageGroups: ['adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','grief','chronic_illness','family'],
+    modalities: ['cbt','psychodynamic'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair'],
     notes: 'Community health center in Woodstock. Telehealth widely available.',
     waitTime: '2–4 weeks',
   },
@@ -842,12 +743,17 @@ const PROVIDERS = [
     address: '5 Hazen St, White River Junction, VT 05001',
     phone: '(802) 649-3462',
     website: 'https://uppervalleyturningpoints.org',
-    zip: '05001',
-    state: 'VT',
+    zip: '05001', state: 'VT',
     insurance: ['sliding_scale','uninsured'],
     ageGroups: ['teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['substance_use','depression','anxiety','grief'],
+    modalities: ['mi','group'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual','group'],
+    cultural: ['lgbtq_affirming'],
+    accessibility: ['transit','sliding_scale','walk_in'],
     notes: 'Peer-led recovery community. Drop-in hours, recovery coaching, support groups.',
     waitTime: 'Walk-in welcome',
   },
@@ -858,12 +764,17 @@ const PROVIDERS = [
     address: '273 County Rd, New London, NH 03257',
     phone: '(603) 526-2911',
     website: 'https://newlondonhospital.org',
-    zip: '03257',
-    state: 'NH',
+    zip: '03257', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united'],
     ageGroups: ['adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','grief','chronic_illness','adhd'],
+    modalities: ['cbt','psychodynamic','med_mgmt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['wheelchair'],
     notes: 'Outpatient behavioral health affiliated with Dartmouth Health. Serves western NH.',
     waitTime: '3–5 weeks',
   },
@@ -874,12 +785,17 @@ const PROVIDERS = [
     address: '22 Sunapee St, Newport, NH 03773',
     phone: '(603) 863-1886',
     website: 'https://newporthealthcenter.org',
-    zip: '03773',
-    state: 'NH',
+    zip: '03773', state: 'NH',
     insurance: ['medicaid','medicare','bcbs','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','substance_use','family','adhd','chronic_illness'],
+    modalities: ['cbt','mi','med_mgmt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['sliding_scale'],
     notes: 'FQHC in Newport NH. Integrated behavioral health for Sullivan County.',
     waitTime: '1–2 weeks',
   },
@@ -890,28 +806,38 @@ const PROVIDERS = [
     address: 'Lebanon, NH (virtual & community)',
     phone: '(603) 225-5359',
     website: 'https://naminh.org',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['sliding_scale','uninsured'],
     ageGroups: ['teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','bipolar','schizophrenia','family'],
-    notes: 'Free support groups (NAMI Connection, Family Support), education classes, and helpline.',
+    modalities: ['group'],
+    languages: ['english'],
+    providerGenders: ['woman','man','nonbinary'],
+    formats: ['group','family'],
+    cultural: ['lgbtq_affirming'],
+    accessibility: ['sliding_scale'],
+    notes: 'Free NAMI Connection support groups, Family Support, education classes, and helpline.',
     waitTime: 'Open enrollment',
   },
   {
     id: 'recovery-vt',
-    name: 'Recovery Vermont – Upper Valley Hub',
+    name: 'Recovery Vermont – Upper Valley',
     type: 'Peer Recovery Support',
     address: 'White River Junction, VT (virtual & community)',
     phone: '(802) 224-8600',
     website: 'https://recoveryvt.org',
-    zip: '05001',
-    state: 'VT',
+    zip: '05001', state: 'VT',
     insurance: ['sliding_scale','uninsured'],
     ageGroups: ['adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['substance_use','depression','anxiety','grief'],
+    modalities: ['mi','group'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual','group'],
+    cultural: [],
+    accessibility: ['sliding_scale'],
     notes: 'Statewide peer recovery network. Volunteer recovery coaches and advocacy.',
     waitTime: 'Immediate intake',
   },
@@ -922,45 +848,59 @@ const PROVIDERS = [
     address: 'Statewide (phone & online)',
     phone: '211',
     website: 'https://211nh.org',
-    zip: '03766',
-    state: 'NH',
+    zip: '03766', state: 'NH',
     insurance: ['any','medicaid','medicare','bcbs','cigna','aetna','united','tufts','harvard_pilgrim','mvp','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: false, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','substance_use','family','grief','crisis','chronic_illness'],
-    notes: 'Free referral service connecting callers to mental health, substance use, housing, and other resources 24/7.',
+    modalities: [],
+    languages: ['english','spanish'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: ['bilingual'],
+    accessibility: ['walk_in','sliding_scale'],
+    notes: 'Free referral service connecting callers to mental health, substance use, housing 24/7.',
     waitTime: 'Immediate',
   },
   {
     id: 'dartmouth-counseling',
-    name: 'Dartmouth College – Dick\'s House Counseling',
+    name: 'Dartmouth College – Counseling Center',
     type: 'College Counseling Center',
     address: '7 Rope Ferry Rd, Hanover, NH 03755',
     phone: '(603) 646-9442',
     website: 'https://students.dartmouth.edu/wellness/counseling',
-    zip: '03755',
-    state: 'NH',
-    insurance: ['student_plan','bcbs','sliding_scale'],
+    zip: '03755', state: 'NH',
+    insurance: ['sliding_scale','bcbs'],
     ageGroups: ['teen','adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','adhd','ocd','eating_disorder','lgbtq','suicidal_ideation','family'],
+    modalities: ['cbt','dbt','emdr','psychodynamic','act'],
+    languages: ['english'],
+    providerGenders: ['woman','man','nonbinary'],
+    formats: ['individual','group','couples'],
+    cultural: ['lgbtq_affirming','bipoc_provider','feminist'],
+    accessibility: ['wheelchair','transit'],
     notes: 'For Dartmouth students and affiliates only. Same-day crisis appointments available.',
     waitTime: 'Same-day crisis; ~1 week routine',
   },
   {
     id: 'csac',
-    name: 'Counseling Service of Addison County (CSAC)',
+    name: 'Counseling Service of Addison County',
     type: 'Community Mental Health Center',
     address: '89 Main St, Middlebury, VT 05753',
-    phone: '(802) 388-6751',
-    crisis: '(802) 388-7641',
+    phone: '(802) 388-6751', crisis: '(802) 388-7641',
     website: 'https://csac-vt.org',
-    zip: '05753',
-    state: 'VT',
+    zip: '05753', state: 'VT',
     insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','family','adhd'],
+    modalities: ['cbt','dbt','mi','med_mgmt','family_tx'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual','family','group'],
+    cultural: ['lgbtq_affirming'],
+    accessibility: ['wheelchair','sliding_scale'],
     notes: 'Vermont CMHC serving Addison County. Accessible to VT Upper Valley residents.',
     waitTime: '2–4 weeks',
   },
@@ -971,12 +911,17 @@ const PROVIDERS = [
     address: '11 S. Main St, Hanover, NH 03755',
     phone: '(603) 643-3800',
     website: 'https://hanovercounseling.com',
-    zip: '03755',
-    state: 'NH',
+    zip: '03755', state: 'NH',
     insurance: ['bcbs','cigna','aetna','united','tufts','harvard_pilgrim','sliding_scale'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','adhd','ocd','eating_disorder','grief','lgbtq','family','bipolar'],
+    modalities: ['cbt','dbt','emdr','psychodynamic','act','somatic'],
+    languages: ['english'],
+    providerGenders: ['woman','man','nonbinary'],
+    formats: ['individual','couples','family'],
+    cultural: ['lgbtq_affirming','feminist'],
+    accessibility: ['wheelchair','transit','evening'],
     notes: 'Multi-clinician private practice in Hanover. Broad insurance acceptance.',
     waitTime: '1–3 weeks',
   },
@@ -987,13 +932,18 @@ const PROVIDERS = [
     address: '215 N. Main St, White River Junction, VT 05009',
     phone: '(802) 295-9363',
     website: 'https://www.whiteriver.va.gov/services/mental_health.asp',
-    zip: '05009',
-    state: 'VT',
+    zip: '05009', state: 'VT',
     insurance: ['va_benefits','medicare'],
     ageGroups: ['adult','older_adult'],
     telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','suicidal_ideation','substance_use','grief','veteran'],
-    notes: 'Full mental health services for enrolled veterans. PTSD clinic, MST support, substance use.',
+    modalities: ['cbt','emdr','mi','med_mgmt','group','act'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual','group','couples'],
+    cultural: ['veteran_friendly'],
+    accessibility: ['wheelchair','transit','evening'],
+    notes: 'Full mental health services for enrolled veterans. PTSD clinic, MST support, SUD treatment.',
     waitTime: 'Priority for urgent; ~2 weeks routine',
   },
   {
@@ -1003,12 +953,17 @@ const PROVIDERS = [
     address: '713 Hartford Ave, White River Junction, VT 05001',
     phone: '(802) 295-6500',
     website: 'https://uvhaven.org',
-    zip: '05001',
-    state: 'VT',
+    zip: '05001', state: 'VT',
     insurance: ['sliding_scale','uninsured'],
     ageGroups: ['adult','older_adult'],
     telehealth: false, inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety','grief','substance_use','family'],
+    modalities: ['mi','cbt'],
+    languages: ['english'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: [],
+    accessibility: ['transit','sliding_scale','walk_in'],
     notes: 'Comprehensive social services with embedded counseling. Serves low-income and unhoused residents.',
     waitTime: 'Varies',
   },
@@ -1019,138 +974,281 @@ const PROVIDERS = [
     address: 'Nationwide (phone & online)',
     phone: '1-800-662-4357',
     website: 'https://www.samhsa.gov/find-help/national-helpline',
-    zip: '00000',
-    state: 'US',
+    zip: '00000', state: 'US',
     insurance: ['any','medicaid','medicare','bcbs','cigna','aetna','united','tufts','harvard_pilgrim','mvp','sliding_scale','uninsured'],
     ageGroups: ['child','teen','adult','older_adult'],
     telehealth: true, inPerson: false, crisisServices: true, acceptingNew: true,
     concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','suicidal_ideation','family','grief','crisis'],
+    modalities: [],
+    languages: ['english','spanish'],
+    providerGenders: ['woman','man'],
+    formats: ['individual'],
+    cultural: ['bilingual'],
+    accessibility: ['sliding_scale','walk_in'],
     notes: 'Free, confidential 24/7 treatment referral and information service (English and Spanish).',
     waitTime: 'Immediate',
   },
 ];
 
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 //  SCORING ENGINE
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 
 const WEIGHTS = {
-  insurance: 28,
-  ageGroup:  22,
-  concerns:  20,
-  telehealth: 15,
-  urgency:   10,
-  proximity:  5,
+  insurance:       26,
+  ageGroup:        18,
+  concerns:        17,
+  telehealth:      11,
+  urgency:          9,
+  sessionFormat:    5,
+  language:         4,
+  providerGender:   3,
+  modalities:       4,
+  cultural:         2,
+  accessibility:    1,
 };
 
-// Upper Valley zip codes with rough cluster
-const UV_ZIPS_NH = ['03741','03743','03755','03766','03770','03773','03782','03784','03257'];
-const UV_ZIPS_VT = ['05001','05009','05030','05031','05043','05045','05048','05051','05053','05060','05061','05067','05091','05156','05753'];
+const UV_NH = ['03741','03743','03755','03766','03770','03773','03782','03784','03257'];
+const UV_VT = ['05001','05009','05030','05031','05043','05045','05048','05051','05053','05060','05061','05067','05091','05156','05753'];
 
-function proximityScore(providerZip, userZip) {
-  if (!userZip || userZip.length < 5) return 0.5;
-  if (providerZip === '00000') return 0.4; // national resources
-  if (providerZip === userZip) return 1.0;
-  const allUV = [...UV_ZIPS_NH, ...UV_ZIPS_VT];
-  const provUV  = allUV.includes(providerZip);
-  const userNH  = UV_ZIPS_NH.includes(userZip);
-  const userVT  = UV_ZIPS_VT.includes(userZip);
-  const provNH  = UV_ZIPS_NH.includes(providerZip);
-  const provVT  = UV_ZIPS_VT.includes(providerZip);
-  if (!provUV) return 0.3;
-  if ((userNH && provNH) || (userVT && provVT)) return 0.9;
-  return 0.7; // cross-river
+function proximity(pZip, uZip) {
+  if (!uZip || uZip.length < 5) return 0.5;
+  if (pZip === '00000') return 0.45;
+  if (pZip === uZip) return 1.0;
+  const allUV = [...UV_NH, ...UV_VT];
+  if (!allUV.includes(pZip)) return 0.3;
+  const uNH = UV_NH.includes(uZip), uVT = UV_VT.includes(uZip);
+  const pNH = UV_NH.includes(pZip), pVT = UV_VT.includes(pZip);
+  if ((uNH && pNH) || (uVT && pVT)) return 0.9;
+  return 0.7;
 }
 
-function scoreProvider(p, filters) {
-  let total = 0;
-  const breakdown = {};
+function scoreProvider(p, f) {
+  let total = 0; const bd = {};
 
-  // ── Insurance ──
+  // Insurance
   let ins = 0;
-  if (!filters.insurance || filters.insurance === 'any') {
-    ins = 0.6;
-  } else if (p.insurance.includes(filters.insurance)) {
-    ins = 1.0;
-  } else if (p.insurance.includes('any')) {
-    ins = 1.0;
-  } else if (p.insurance.includes('sliding_scale') || p.insurance.includes('uninsured')) {
-    ins = 0.4;
-  } else {
-    ins = 0.0;
-  }
-  breakdown.insurance = ins;
-  total += ins * WEIGHTS.insurance;
+  if (!f.insurance || f.insurance === 'any') ins = 0.6;
+  else if (p.insurance.includes('any') || p.insurance.includes(f.insurance)) ins = 1.0;
+  else if (p.insurance.includes('sliding_scale') || p.insurance.includes('uninsured')) ins = 0.35;
+  bd.insurance = ins; total += ins * WEIGHTS.insurance;
 
-  // ── Age Group ──
+  // Age
   let age = 0;
-  if (!filters.ageGroup || filters.ageGroup === 'any') {
-    age = 0.7;
-  } else if (p.ageGroups.includes(filters.ageGroup)) {
-    age = 1.0;
-  } else if (filters.ageGroup === 'adult' && p.ageGroups.includes('older_adult')) {
-    age = 0.6;
-  } else {
-    age = 0.0;
-  }
-  breakdown.ageGroup = age;
-  total += age * WEIGHTS.ageGroup;
+  if (!f.ageGroup || f.ageGroup === 'any') age = 0.7;
+  else if (p.ageGroups.includes(f.ageGroup)) age = 1.0;
+  else if (f.ageGroup === 'adult' && p.ageGroups.includes('older_adult')) age = 0.55;
+  bd.ageGroup = age; total += age * WEIGHTS.ageGroup;
 
-  // ── Concerns ──
+  // Concerns
   let con = 0;
-  if (!filters.concerns || filters.concerns.length === 0) {
-    con = 0.5;
-  } else {
-    const matched = filters.concerns.filter(c => p.concerns.includes(c)).length;
-    con = matched / filters.concerns.length;
+  if (!f.concerns || f.concerns.length === 0) con = 0.5;
+  else {
+    const matched = f.concerns.filter(c => p.concerns.includes(c)).length;
+    con = matched / f.concerns.length;
   }
-  breakdown.concerns = con;
-  total += con * WEIGHTS.concerns;
+  bd.concerns = con; total += con * WEIGHTS.concerns;
 
-  // ── Telehealth ──
+  // Telehealth
   let tele = 0;
-  if (!filters.telehealth || filters.telehealth === 'any') {
-    tele = 0.6;
-  } else if (filters.telehealth === 'required') {
-    tele = p.telehealth ? 1.0 : 0.0;
-  } else if (filters.telehealth === 'preferred') {
-    tele = p.telehealth ? 1.0 : 0.4;
-  } else if (filters.telehealth === 'in_person') {
-    tele = p.inPerson ? 1.0 : 0.2;
-  }
-  breakdown.telehealth = tele;
-  total += tele * WEIGHTS.telehealth;
+  if (!f.telehealth || f.telehealth === 'any') tele = 0.6;
+  else if (f.telehealth === 'required') tele = p.telehealth ? 1.0 : 0.0;
+  else if (f.telehealth === 'preferred') tele = p.telehealth ? 1.0 : 0.35;
+  else if (f.telehealth === 'in_person') tele = p.inPerson ? 1.0 : 0.15;
+  bd.telehealth = tele; total += tele * WEIGHTS.telehealth;
 
-  // ── Urgency ──
+  // Urgency
   let urg = 0;
-  if (!filters.urgency || filters.urgency === 'exploring') {
-    urg = 0.5;
-  } else if (filters.urgency === 'crisis') {
-    urg = p.crisisServices ? 1.0 : (p.acceptingNew ? 0.3 : 0.1);
-  } else if (filters.urgency === 'urgent') {
-    urg = p.crisisServices ? 1.0 : (p.acceptingNew ? 0.8 : 0.2);
-  } else {
-    // routine
-    urg = p.acceptingNew ? 0.9 : 0.3;
+  if (!f.urgency || f.urgency === 'exploring') urg = 0.5;
+  else if (f.urgency === 'crisis') urg = p.crisisServices ? 1.0 : (p.acceptingNew ? 0.25 : 0.05);
+  else if (f.urgency === 'urgent') urg = p.crisisServices ? 1.0 : (p.acceptingNew ? 0.8 : 0.2);
+  else urg = p.acceptingNew ? 0.9 : 0.3;
+  bd.urgency = urg; total += urg * WEIGHTS.urgency;
+
+  // Session format
+  let fmt = 0;
+  if (!f.sessionFormat || f.sessionFormat === 'any') fmt = 0.6;
+  else if (p.formats && p.formats.includes(f.sessionFormat)) fmt = 1.0;
+  else fmt = 0.2;
+  bd.sessionFormat = fmt; total += fmt * WEIGHTS.sessionFormat;
+
+  // Language
+  let lang = 0;
+  if (!f.language || f.language === 'any') lang = 0.6;
+  else if (p.languages && p.languages.includes(f.language)) lang = 1.0;
+  else lang = 0.15;
+  bd.language = lang; total += lang * WEIGHTS.language;
+
+  // Provider gender
+  let gen = 0;
+  if (!f.providerGender || f.providerGender === 'any') gen = 0.6;
+  else if (p.providerGenders && p.providerGenders.includes(f.providerGender)) gen = 1.0;
+  else gen = 0.1;
+  bd.providerGender = gen; total += gen * WEIGHTS.providerGender;
+
+  // Modalities
+  let mod = 0;
+  if (!f.modalities || f.modalities.length === 0) mod = 0.5;
+  else if (!p.modalities || p.modalities.length === 0) mod = 0.3;
+  else {
+    const matched = f.modalities.filter(m => p.modalities.includes(m)).length;
+    mod = matched / f.modalities.length;
   }
-  breakdown.urgency = urg;
-  total += urg * WEIGHTS.urgency;
+  bd.modalities = mod; total += mod * WEIGHTS.modalities;
 
-  // ── Proximity ──
-  const prox = proximityScore(p.zip, filters.zip);
-  breakdown.proximity = prox;
-  total += prox * WEIGHTS.proximity;
+  // Cultural
+  let cul = 0;
+  if (!f.cultural || f.cultural.length === 0) cul = 0.6;
+  else if (!p.cultural || p.cultural.length === 0) cul = 0.3;
+  else {
+    const matched = f.cultural.filter(c => p.cultural.includes(c)).length;
+    cul = matched / f.cultural.length;
+  }
+  bd.cultural = cul; total += cul * WEIGHTS.cultural;
 
+  // Accessibility
+  let acc = 0;
+  if (!f.accessibility || f.accessibility.length === 0) acc = 0.6;
+  else if (!p.accessibility || p.accessibility.length === 0) acc = 0.3;
+  else {
+    const matched = f.accessibility.filter(a => p.accessibility.includes(a)).length;
+    acc = matched / f.accessibility.length;
+  }
+  bd.accessibility = acc; total += acc * WEIGHTS.accessibility;
+
+  // Proximity bonus (outside weights, additive)
+  const prox = proximity(p.zip, f.zip);
   const maxScore = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
+  const ruleScore = Math.round((total / maxScore) * 100);
+
+  // ML adjustment (if model loaded)
+  let mlAdj = 0;
+  if (window.ML_MODEL) {
+    mlAdj = computeMLAdjustment(p, f, bd);
+  }
+
   return {
-    score: Math.round((total / maxScore) * 100),
-    breakdown,
+    score: Math.min(99, Math.max(1, ruleScore + Math.round(mlAdj) + Math.round((prox - 0.5) * 6))),
+    ruleScore,
+    mlAdj: Math.round(mlAdj),
+    breakdown: bd,
+    usedML: !!window.ML_MODEL,
   };
 }
 
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  ML INFERENCE
+//  Loads ml/model_weights.json — runs in browser
+//  Falls back to rule-based if not found
+// ═══════════════════════════════════════════════════
+
+window.ML_MODEL = null;
+
+async function loadMLModel() {
+  try {
+    const res = await fetch('ml/model_weights.json', { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return;
+    const model = await res.json();
+    if (model.version && model.weights && model.feature_names) {
+      window.ML_MODEL = model;
+      document.getElementById('ml-dot').classList.add('loaded');
+      document.getElementById('ml-status-text').textContent =
+        `ML model v${model.version} loaded (${model.feature_names.length} features)`;
+      document.getElementById('ml-notice').innerHTML =
+        `🤖 ML model loaded (trained on ${model.training_samples || '?'} interactions). ` +
+        `Scores include a learned adjustment on top of the rule-based model.`;
+      document.getElementById('ml-notice').classList.add('active');
+    }
+  } catch (_) { /* no model yet, fine */ }
+}
+
+/**
+ * Build the ML feature vector — must match the order in ml/train.py FEATURE_NAMES.
+ * Returns a score adjustment in the range [-20, +20].
+ */
+function computeMLAdjustment(p, f, bd) {
+  const m = window.ML_MODEL;
+  const vec = m.feature_names.map(name => {
+    switch (name) {
+      case 'insurance_match':       return bd.insurance >= 1.0 ? 1 : 0;
+      case 'insurance_partial':     return bd.insurance >= 0.3 && bd.insurance < 1.0 ? 1 : 0;
+      case 'age_match':             return bd.ageGroup >= 1.0 ? 1 : 0;
+      case 'concerns_overlap':      return bd.concerns;
+      case 'telehealth_match':      return bd.telehealth >= 0.9 ? 1 : 0;
+      case 'crisis_match':          return (f.urgency === 'crisis' && p.crisisServices) ? 1 : 0;
+      case 'language_match':        return bd.language >= 1.0 ? 1 : 0;
+      case 'gender_match':          return bd.providerGender >= 1.0 ? 1 : 0;
+      case 'modality_overlap':      return bd.modalities;
+      case 'cultural_overlap':      return bd.cultural;
+      case 'is_cmhc':               return p.type.includes('Community Mental Health') ? 1 : 0;
+      case 'is_fqhc':               return p.type.includes('Federally Qualified') ? 1 : 0;
+      case 'is_crisis_center':      return p.type.includes('Crisis') ? 1 : 0;
+      case 'accepts_medicaid':      return p.insurance.includes('medicaid') ? 1 : 0;
+      case 'accepts_uninsured':     return p.insurance.includes('uninsured') ? 1 : 0;
+      case 'has_telehealth':        return p.telehealth ? 1 : 0;
+      case 'has_crisis_services':   return p.crisisServices ? 1 : 0;
+      case 'urgency_is_crisis':     return f.urgency === 'crisis' ? 1 : 0;
+      case 'urgency_is_urgent':     return f.urgency === 'urgent' ? 1 : 0;
+      case 'user_uninsured':        return f.insurance === 'uninsured' || f.insurance === 'sliding_scale' ? 1 : 0;
+      case 'evening_hours':         return p.accessibility && p.accessibility.includes('evening') ? 1 : 0;
+      case 'walk_in':               return p.accessibility && p.accessibility.includes('walk_in') ? 1 : 0;
+      default:                      return 0;
+    }
+  });
+
+  // Scaled dot product → tanh clamp → adjustment
+  let dot = 0;
+  for (let i = 0; i < vec.length; i++) dot += vec[i] * m.weights[i];
+  dot += m.bias || 0;
+  // Apply scaler
+  if (m.scaler) {
+    dot = (dot - (m.scaler.mean || 0)) / (m.scaler.std || 1);
+  }
+  // Map to [-20, +20] adjustment
+  return Math.tanh(dot) * 20;
+}
+
+// ═══════════════════════════════════════════════════
+//  INTERACTION LOGGING  (for ML training data)
+// ═══════════════════════════════════════════════════
+
+const INTERACTION_KEY = 'uv_mh_interactions';
+
+function logInteraction(type, providerId, filters, score) {
+  const log = JSON.parse(localStorage.getItem(INTERACTION_KEY) || '[]');
+  log.push({
+    ts: new Date().toISOString(),
+    type,           // 'view' | 'call' | 'website' | 'rate'
+    providerId,
+    score,
+    filters: {
+      insurance: filters.insurance,
+      ageGroup: filters.ageGroup,
+      telehealth: filters.telehealth,
+      urgency: filters.urgency,
+      sessionFormat: filters.sessionFormat,
+      language: filters.language,
+      providerGender: filters.providerGender,
+      concerns: filters.concerns,
+      modalities: filters.modalities,
+      cultural: filters.cultural,
+      accessibility: filters.accessibility,
+    },
+  });
+  localStorage.setItem(INTERACTION_KEY, JSON.stringify(log));
+  document.getElementById('export-btn').style.display = 'inline-block';
+}
+
+function logRating(providerId, filters, score, rating) {
+  logInteraction('rate', providerId, filters, score);
+  const log = JSON.parse(localStorage.getItem(INTERACTION_KEY) || '[]');
+  log[log.length - 1].rating = rating;
+  localStorage.setItem(INTERACTION_KEY, JSON.stringify(log));
+}
+
+// ═══════════════════════════════════════════════════
 //  SAMHSA API
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 
 async function fetchSAMHSA(zip) {
   const url = `https://findtreatment.samhsa.gov/locator/api/location?sAddr=${zip}&distance=30&pageSize=20&sType=MH`;
@@ -1161,18 +1259,15 @@ async function fetchSAMHSA(zip) {
 
 function samhsaToProvider(row) {
   const ins = [];
-  if (row.payment) {
-    const p = (row.payment || '').toLowerCase();
-    if (p.includes('medicaid')) ins.push('medicaid');
-    if (p.includes('medicare')) ins.push('medicare');
-    if (p.includes('sliding')) ins.push('sliding_scale');
-    if (p.includes('free') || p.includes('no charge')) ins.push('uninsured');
-  }
+  const pmt = (row.payment || '').toLowerCase();
+  if (pmt.includes('medicaid')) ins.push('medicaid');
+  if (pmt.includes('medicare')) ins.push('medicare');
+  if (pmt.includes('sliding')) ins.push('sliding_scale');
+  if (pmt.includes('free') || pmt.includes('no charge')) ins.push('uninsured');
   if (ins.length === 0) ins.push('sliding_scale');
-
   return {
     id: `samhsa_${row.frid || Math.random()}`,
-    name: row.name1 || row.facilityName || 'Unknown Facility',
+    name: row.name1 || 'Unknown Facility',
     type: row.typeOfCare || row.type_facility || 'Mental Health Facility',
     address: [row.street1, row.city, row.state, row.zip].filter(Boolean).join(', '),
     phone: row.phone || '',
@@ -1182,10 +1277,11 @@ function samhsaToProvider(row) {
     insurance: ins,
     ageGroups: ['adult'],
     telehealth: !!(row.telehealth || row.telemedicine),
-    inPerson: true,
-    crisisServices: false,
-    acceptingNew: true,
+    inPerson: true, crisisServices: false, acceptingNew: true,
     concerns: ['depression','anxiety'],
+    modalities: [], languages: ['english'],
+    providerGenders: ['woman','man'], formats: ['individual'],
+    cultural: [], accessibility: [],
     notes: row.comments || '',
     waitTime: 'Call to confirm',
     source: 'samhsa',
@@ -1193,261 +1289,325 @@ function samhsaToProvider(row) {
   };
 }
 
-// ════════════════════════════════════════════════════════
-//  UI HELPERS
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════
 
-function scoreClass(s) {
-  if (s >= 70) return 'high';
-  if (s >= 45) return 'mid';
-  return 'low';
+const INS_LABELS = {
+  medicaid:'Medicaid', medicare:'Medicare', bcbs:'BCBS', cigna:'Cigna',
+  aetna:'Aetna', united:'UnitedHealthcare', tufts:'Tufts', harvard_pilgrim:'Harvard Pilgrim',
+  mvp:'MVP Health', sliding_scale:'Sliding scale', uninsured:'Uninsured/free',
+  va_benefits:'VA Benefits', student_plan:'Student plan', any:'All plans',
+};
+
+function sc(s) { return s >= 70 ? 'high' : s >= 45 ? 'mid' : 'low'; }
+
+function sfTag(v, label) {
+  const cls = v >= 0.75 ? 'match' : v >= 0.4 ? 'partial' : 'miss';
+  return `<span class="sf ${cls}">${label} ${Math.round(v*100)}%</span>`;
 }
 
-function tagForInsurance(p, ins) {
-  if (!ins || ins === 'any') return '';
-  if (p.insurance.includes(ins) || p.insurance.includes('any')) {
-    return '<span class="tag tag-green">✓ Insurance match</span>';
-  }
-  if (p.insurance.includes('sliding_scale') || p.insurance.includes('uninsured')) {
-    return '<span class="tag tag-amber">Sliding scale</span>';
-  }
-  return '<span class="tag tag-gray">Insurance unconfirmed</span>';
-}
+const BD_LABELS = {
+  insurance:'Insurance', ageGroup:'Age', concerns:'Concerns', telehealth:'Telehealth',
+  urgency:'Urgency', sessionFormat:'Format', language:'Language',
+  providerGender:'Gender pref', modalities:'Approach', cultural:'Cultural', accessibility:'Access',
+};
 
-function buildBreakdown(bd) {
-  const labels = {
-    insurance: 'Insurance', ageGroup: 'Age group', concerns: 'Concerns',
-    telehealth: 'Telehealth', urgency: 'Urgency', proximity: 'Location'
-  };
-  return Object.entries(bd).map(([k, v]) => {
-    const cls = v >= 0.75 ? 'match' : v >= 0.4 ? 'partial' : 'miss';
-    const pct = Math.round(v * 100);
-    return `<span class="score-factor ${cls}">${labels[k]}: ${pct}%</span>`;
-  }).join('');
-}
+let currentFilters = {};
 
-function renderCard(p, scoreData, filters) {
-  const s = scoreData.score;
-  const sc = scoreClass(s);
-  const isOpen = false;
-  const isCrisis = p.crisisServices;
+function renderCard(p, sd, filters) {
+  const s = sd.score; const cls = sc(s);
   const isSAMHSA = p.source === 'samhsa';
-
-  const phoneHtml = p.phone ? `<a href="tel:${p.phone.replace(/\D/g,'')}">${p.phone}</a>` : 'N/A';
-  const crisisHtml = p.crisis ? `<a href="tel:${p.crisis.replace(/\D/g,'')}">${p.crisis}</a>` : null;
-  const websiteHtml = p.website ? `<a href="${p.website}" target="_blank" rel="noopener">Visit website ↗</a>` : '';
-
   const tags = [];
-  if (isCrisis) tags.push('<span class="tag tag-red">🆘 Crisis services</span>');
+  if (p.crisisServices) tags.push('<span class="tag tag-red">🆘 Crisis</span>');
   if (p.telehealth) tags.push('<span class="tag tag-blue">📱 Telehealth</span>');
-  if (p.acceptingNew) tags.push('<span class="tag tag-green">✓ Accepting patients</span>');
-  tags.push(tagForInsurance(p, filters.insurance));
+  if (p.acceptingNew) tags.push('<span class="tag tag-green">✓ Accepting</span>');
+  if (sd.usedML && sd.mlAdj !== 0) {
+    const sign = sd.mlAdj > 0 ? '+' : '';
+    tags.push(`<span class="tag tag-purple">🤖 ML ${sign}${sd.mlAdj}</span>`);
+  }
+  if (!filters.insurance || filters.insurance === 'any') {
+    /* no badge */
+  } else if (p.insurance.includes(filters.insurance) || p.insurance.includes('any')) {
+    tags.push('<span class="tag tag-green">✓ Ins. match</span>');
+  } else if (p.insurance.includes('sliding_scale') || p.insurance.includes('uninsured')) {
+    tags.push('<span class="tag tag-amber">Sliding scale</span>');
+  }
+
+  const callBtn = p.phone ? `<button class="action-btn action-call" data-id="${p.id}" data-type="call">📞 Call</button>` : '';
+  const webBtn  = p.website ? `<button class="action-btn action-web" data-id="${p.id}" data-type="web">🌐 Website</button>` : '';
+  const rateBtn = `<button class="action-btn action-rate" data-id="${p.id}" data-type="rateopen">★ Rate</button>`;
+  const stars   = [1,2,3,4,5].map(n => `<span class="star" data-id="${p.id}" data-rating="${n}">★</span>`).join('');
+
+  const breakdown = Object.entries(sd.breakdown)
+    .map(([k, v]) => sfTag(v, BD_LABELS[k] || k)).join('');
 
   return `
-<div class="provider-card${isCrisis ? ' crisis-provider' : ''}"
-     data-id="${p.id}"
-     role="article"
-     aria-expanded="false"
-     tabindex="0">
+<div class="provider-card${p.crisisServices ? ' crisis-provider' : ''}"
+     data-id="${p.id}" data-score="${s}" role="article" aria-expanded="false" tabindex="0">
   ${isSAMHSA ? '<span class="source-samhsa">SAMHSA</span>' : ''}
+  ${sd.usedML ? '<span class="ml-badge">ML</span>' : ''}
   <span class="card-chevron" aria-hidden="true">▼</span>
   <div class="card-top">
-    <div class="score-badge score-${sc}" aria-label="Match score ${s}%">
+    <div class="score-badge score-${cls}" aria-label="Match score ${s}%">
       ${s}<span class="score-label">match</span>
     </div>
     <div class="card-info">
-      <div class="provider-type">${p.type}${p.state !== 'US' ? ' &nbsp;·&nbsp; ' + p.state : ''}</div>
+      <div class="provider-type">${p.type}${p.state !== 'US' ? ' · ' + p.state : ''}</div>
       <h3>${p.name}</h3>
       <div class="card-tags">${tags.filter(Boolean).join('')}</div>
       <div class="card-address">📍 ${p.address}</div>
     </div>
   </div>
-  <div class="card-expand" id="expand-${p.id}">
-    <div class="score-bar-wrap">
-      <div class="score-bar-label"><span>Match score</span><span>${s}%</span></div>
-      <div class="score-bar-bg"><div class="score-bar-fill ${sc}" style="width:${s}%"></div></div>
+  <div class="card-expand" id="exp-${p.id}">
+    <div class="score-breakdown-wrap">
+      <div class="score-bar-label"><span>Match score</span><span>${s}%${sd.usedML ? ' (ML-enhanced)' : ''}</span></div>
+      <div class="score-bar-bg"><div class="score-bar-fill fill-${cls}" style="width:${s}%"></div></div>
+      <div class="score-factors">${breakdown}</div>
     </div>
-    <div class="score-breakdown">${buildBreakdown(scoreData.breakdown)}</div>
     <div class="expand-item">
-      <strong>Phone</strong>${phoneHtml}
+      <strong>Phone</strong>
+      ${p.phone ? `<a href="tel:${p.phone.replace(/\D/g,'')}">${p.phone}</a>` : 'N/A'}
+      ${p.crisis && p.crisis !== p.phone ? ` · Crisis: <a href="tel:${p.crisis.replace(/\D/g,'')}">${p.crisis}</a>` : ''}
     </div>
-    ${crisisHtml ? `<div class="expand-item"><strong>Crisis line</strong>${crisisHtml}</div>` : ''}
-    <div class="expand-item">
-      <strong>Wait time</strong>${p.waitTime || 'Call to confirm'}
-    </div>
+    <div class="expand-item"><strong>Wait time</strong>${p.waitTime || 'Call to confirm'}</div>
     ${p.distance ? `<div class="expand-item"><strong>Distance</strong>${p.distance}</div>` : ''}
     <div class="expand-item">
-      <strong>Insurance accepted</strong>
-      ${p.insurance.includes('any') ? 'All major plans' : p.insurance.map(i => INSURANCE_LABELS[i] || i).join(', ')}
+      <strong>Insurance</strong>
+      ${p.insurance.includes('any') ? 'All major plans' : p.insurance.map(i => INS_LABELS[i]||i).join(', ')}
     </div>
+    ${p.modalities && p.modalities.length ? `<div class="expand-item"><strong>Approaches</strong>${p.modalities.join(', ')}</div>` : ''}
+    ${p.languages && p.languages.length > 1 ? `<div class="expand-item"><strong>Languages</strong>${p.languages.join(', ')}</div>` : ''}
     <div class="expand-item">
-      <strong>Website</strong>${websiteHtml || 'N/A'}
+      <strong>Website</strong>
+      ${p.website ? `<a href="${p.website}" target="_blank" rel="noopener">Visit ↗</a>` : 'N/A'}
     </div>
     ${p.notes ? `<div class="expand-item" style="grid-column:1/-1"><strong>Notes</strong>${p.notes}</div>` : ''}
+    <div class="card-actions">
+      ${callBtn}${webBtn}${rateBtn}
+      <div class="rate-stars" id="stars-${p.id}">${stars}</div>
+    </div>
   </div>
 </div>`;
 }
 
-const INSURANCE_LABELS = {
-  medicaid: 'Medicaid', medicare: 'Medicare', bcbs: 'BCBS', cigna: 'Cigna',
-  aetna: 'Aetna', united: 'UnitedHealthcare', tufts: 'Tufts', harvard_pilgrim: 'Harvard Pilgrim',
-  mvp: 'MVP Health', sliding_scale: 'Sliding scale', uninsured: 'Uninsured/free',
-  va_benefits: 'VA Benefits', student_plan: 'Student plan', any: 'All plans',
-};
-
-// ════════════════════════════════════════════════════════
-//  MAIN SEARCH
-// ════════════════════════════════════════════════════════
-
-async function runSearch(filters) {
-  // Phase 1: score and render seeded providers immediately
-  const seededResults = PROVIDERS.map(p => ({
-    provider: p,
-    scoreData: scoreProvider(p, filters),
-  })).sort((a, b) => b.scoreData.score - a.scoreData.score);
-
-  showResults(seededResults, filters, false);
-
-  // Phase 2: fetch SAMHSA if zip provided
-  if (filters.zip && filters.zip.length === 5) {
-    try {
-      const data = await fetchSAMHSA(filters.zip);
-      const rows = data.rows || data.facilities || [];
-      if (rows.length > 0) {
-        const samhsaProviders = rows.map(samhsaToProvider);
-        const samhsaResults = samhsaProviders.map(p => ({
-          provider: p,
-          scoreData: scoreProvider(p, filters),
-        }));
-        const combined = [...seededResults, ...samhsaResults]
-          .sort((a, b) => b.scoreData.score - a.scoreData.score);
-        showResults(combined, filters, true, rows.length);
-      } else {
-        setSAMHSAError('SAMHSA returned no additional results for this zip code.');
-      }
-    } catch (e) {
-      setSAMHSAError('Could not reach SAMHSA database — showing local providers only. ' +
-        'You can also search directly at <a href="https://findtreatment.samhsa.gov" target="_blank">findtreatment.samhsa.gov</a>.');
-    }
-  }
-}
-
 function showResults(results, filters, samhsaLoaded, samhsaCount) {
-  const el = document.getElementById('results-list');
-  const countEl = document.getElementById('results-count');
-  const metaEl = document.getElementById('results-meta');
-  const section = document.getElementById('results-section');
-  const loading = document.getElementById('loading');
-
-  loading.classList.remove('active');
+  const listEl   = document.getElementById('results-list');
+  const countEl  = document.getElementById('results-count');
+  const section  = document.getElementById('results-section');
+  document.getElementById('loading').classList.remove('active');
   section.classList.add('active');
-
   countEl.textContent = `${results.length} provider${results.length !== 1 ? 's' : ''} found`;
-  metaEl.textContent = `Sorted by match score`;
+  document.getElementById('results-meta').textContent = 'Sorted by match score';
 
   if (samhsaLoaded) {
-    const notice = document.getElementById('samhsa-notice');
-    notice.innerHTML = `✓ Added ${samhsaCount} live results from SAMHSA Treatment Locator.`;
-    notice.classList.add('active');
-    document.getElementById('samhsa-error').classList.remove('active');
+    const n = document.getElementById('samhsa-notice');
+    n.innerHTML = `✓ Added ${samhsaCount} live result${samhsaCount !== 1 ? 's' : ''} from SAMHSA Treatment Locator.`;
+    n.classList.add('active');
   }
 
-  el.innerHTML = results.map(r => renderCard(r.provider, r.scoreData, filters)).join('');
+  listEl.innerHTML = results.map(r => renderCard(r.provider, r.scoreData, filters)).join('');
 
-  // Wire expand toggling
-  el.querySelectorAll('.provider-card').forEach(card => {
+  // Expand / collapse
+  listEl.querySelectorAll('.provider-card').forEach(card => {
     const toggle = () => {
       const id = card.dataset.id;
-      const exp = document.getElementById(`expand-${id}`);
-      const isOpen = exp.classList.contains('open');
-      exp.classList.toggle('open', !isOpen);
-      card.classList.toggle('expanded', !isOpen);
-      card.setAttribute('aria-expanded', String(!isOpen));
+      const exp = document.getElementById(`exp-${id}`);
+      const open = exp.classList.toggle('open');
+      card.classList.toggle('expanded', open);
+      card.setAttribute('aria-expanded', String(open));
+      if (open) logInteraction('view', id, filters, parseInt(card.dataset.score));
     };
-    card.addEventListener('click', toggle);
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }});
+    card.addEventListener('click', e => {
+      // Don't toggle if clicking action buttons / stars
+      if (e.target.closest('.card-actions')) return;
+      toggle();
+    });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+
+  // Action buttons
+  listEl.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const score = parseInt(btn.closest('.provider-card').dataset.score);
+      const provider = [...PROVIDERS, ...window._samhsaProviders||[]].find(p => p.id === id);
+      if (btn.dataset.type === 'call' && provider?.phone) {
+        logInteraction('call', id, filters, score);
+        window.location.href = `tel:${provider.phone.replace(/\D/g,'')}`;
+      } else if (btn.dataset.type === 'web' && provider?.website) {
+        logInteraction('website', id, filters, score);
+        window.open(provider.website, '_blank', 'noopener');
+      } else if (btn.dataset.type === 'rateopen') {
+        const stars = document.getElementById(`stars-${id}`);
+        stars.classList.toggle('show');
+      }
+    });
+  });
+
+  // Stars
+  listEl.querySelectorAll('.star').forEach(star => {
+    star.addEventListener('mouseenter', () => {
+      const rating = parseInt(star.dataset.rating);
+      const group = document.getElementById(`stars-${star.dataset.id}`);
+      group.querySelectorAll('.star').forEach((s,i) => s.classList.toggle('lit', i < rating));
+    });
+    star.addEventListener('mouseleave', () => {
+      const group = document.getElementById(`stars-${star.dataset.id}`);
+      group.querySelectorAll('.star').forEach(s => s.classList.remove('lit'));
+    });
+    star.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = star.dataset.id;
+      const rating = parseInt(star.dataset.rating);
+      const score = parseInt(star.closest('.provider-card').dataset.score);
+      logRating(id, filters, score, rating);
+      const group = document.getElementById(`stars-${id}`);
+      group.querySelectorAll('.star').forEach((s,i) => { s.classList.toggle('lit', i < rating); });
+      setTimeout(() => group.classList.remove('show'), 600);
+    });
   });
 }
 
 function setSAMHSAError(msg) {
   const el = document.getElementById('samhsa-error');
-  el.innerHTML = `⚠ ${msg}`;
-  el.classList.add('active');
+  el.innerHTML = `⚠ ${msg}`; el.classList.add('active');
 }
 
-// ════════════════════════════════════════════════════════
-//  CONCERNS PILLS
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  MAIN SEARCH
+// ═══════════════════════════════════════════════════
 
-function buildConcernPills() {
-  const grid = document.getElementById('concerns-grid');
-  grid.innerHTML = CONCERNS_LIST.map(c => `
-    <label class="concern-pill" data-id="${c.id}">
-      <input type="checkbox" name="concern" value="${c.id}" aria-label="${c.label}">
-      ${c.label}
+window._samhsaProviders = [];
+
+async function runSearch(filters) {
+  const seeded = PROVIDERS.map(p => ({ provider: p, scoreData: scoreProvider(p, filters) }))
+    .sort((a, b) => b.scoreData.score - a.scoreData.score);
+
+  showResults(seeded, filters, false, 0);
+
+  if (filters.zip && filters.zip.length === 5) {
+    try {
+      const data = await fetchSAMHSA(filters.zip);
+      const rows = data.rows || data.facilities || [];
+      if (rows.length > 0) {
+        window._samhsaProviders = rows.map(samhsaToProvider);
+        const combined = [
+          ...seeded,
+          ...window._samhsaProviders.map(p => ({ provider: p, scoreData: scoreProvider(p, filters) })),
+        ].sort((a, b) => b.scoreData.score - a.scoreData.score);
+        showResults(combined, filters, true, rows.length);
+      } else {
+        setSAMHSAError('SAMHSA returned no additional results for this zip code.');
+      }
+    } catch (_) {
+      setSAMHSAError('Could not reach SAMHSA — showing local providers only. ' +
+        'Search directly at <a href="https://findtreatment.samhsa.gov" target="_blank">findtreatment.samhsa.gov</a>.');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  PILL BUILDERS
+// ═══════════════════════════════════════════════════
+
+function buildPills(containerId, list, colorClass) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = list.map(item => `
+    <label class="pill" data-id="${item.id}">
+      <input type="checkbox" value="${item.id}" aria-label="${item.label}">
+      ${item.label}
     </label>`).join('');
-  grid.querySelectorAll('.concern-pill').forEach(pill => {
+  grid.querySelectorAll('.pill').forEach(pill => {
     pill.addEventListener('click', () => {
       const cb = pill.querySelector('input');
       cb.checked = !cb.checked;
       pill.classList.toggle('selected', cb.checked);
+      if (colorClass && cb.checked) pill.classList.add(colorClass);
+      else pill.classList.remove(colorClass || '');
     });
   });
 }
 
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 //  FORM HANDLING
-// ════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 
 function getFilters() {
-  const checkedConcerns = [...document.querySelectorAll('#concerns-grid input:checked')]
-    .map(cb => cb.value);
+  const checked = id => [...document.querySelectorAll(`#${id} input:checked`)].map(c => c.value);
   return {
-    zip: document.getElementById('zip').value.trim(),
-    insurance: document.getElementById('insurance').value,
-    ageGroup: document.getElementById('age_group').value,
-    telehealth: document.getElementById('telehealth').value,
-    urgency: document.getElementById('urgency').value,
-    concerns: checkedConcerns,
+    zip:           document.getElementById('zip').value.trim(),
+    insurance:     document.getElementById('insurance').value,
+    ageGroup:      document.getElementById('age_group').value,
+    telehealth:    document.getElementById('telehealth').value,
+    urgency:       document.getElementById('urgency').value,
+    sessionFormat: document.getElementById('session_format').value,
+    language:      document.getElementById('language').value,
+    providerGender:document.getElementById('provider_gender').value,
+    priorTreatment:document.getElementById('prior_treatment').value,
+    frequency:     document.getElementById('frequency').value,
+    concerns:      checked('concerns-grid'),
+    modalities:    checked('modalities-grid'),
+    cultural:      checked('cultural-grid'),
+    accessibility: checked('accessibility-grid'),
   };
 }
 
-document.getElementById('search-form').addEventListener('submit', async (e) => {
+document.getElementById('search-form').addEventListener('submit', async e => {
   e.preventDefault();
   const filters = getFilters();
-
-  // Validation
-  if (filters.zip && !/^\d{5}$/.test(filters.zip)) {
-    alert('Please enter a valid 5-digit zip code.');
-    return;
-  }
-
+  if (filters.zip && !/^\d{5}$/.test(filters.zip)) { alert('Please enter a valid 5-digit zip code.'); return; }
+  currentFilters = filters;
   document.getElementById('loading').classList.add('active');
   document.getElementById('results-section').classList.remove('active');
-  document.getElementById('samhsa-notice').classList.remove('active');
-  document.getElementById('samhsa-error').classList.remove('active');
+  ['samhsa-notice','samhsa-error','ml-notice'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('search-btn').disabled = true;
-
   await runSearch(filters);
-
   document.getElementById('search-btn').disabled = false;
-  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('results-section').scrollIntoView({ behavior:'smooth', block:'start' });
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   document.getElementById('search-form').reset();
-  document.querySelectorAll('.concern-pill').forEach(p => {
-    p.classList.remove('selected');
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.remove('selected','selected-green','selected-purple','selected-teal');
     p.querySelector('input').checked = false;
   });
   document.getElementById('results-section').classList.remove('active');
-  document.getElementById('samhsa-notice').classList.remove('active');
-  document.getElementById('samhsa-error').classList.remove('active');
+  ['samhsa-notice','samhsa-error','ml-notice'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('loading').classList.remove('active');
+  currentFilters = {};
+});
+
+// Export training data
+document.getElementById('export-btn').addEventListener('click', () => {
+  const log = JSON.parse(localStorage.getItem(INTERACTION_KEY) || '[]');
+  document.getElementById('data-preview').textContent = JSON.stringify(log, null, 2);
+  document.getElementById('data-panel').classList.add('active');
+  document.getElementById('data-panel').scrollIntoView({ behavior:'smooth' });
+});
+document.getElementById('copy-data-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('data-preview').textContent)
+    .then(() => { document.getElementById('copy-data-btn').textContent = '✓ Copied!'; setTimeout(() => { document.getElementById('copy-data-btn').textContent = 'Copy JSON'; }, 2000); });
+});
+document.getElementById('clear-data-btn').addEventListener('click', () => {
+  if (confirm('Clear all stored interaction data?')) {
+    localStorage.removeItem(INTERACTION_KEY);
+    document.getElementById('data-panel').classList.remove('active');
+    document.getElementById('export-btn').style.display = 'none';
+  }
+});
+document.getElementById('close-panel-btn').addEventListener('click', () => {
+  document.getElementById('data-panel').classList.remove('active');
 });
 
 // ── Init ──
-buildConcernPills();
+buildPills('concerns-grid',     CONCERNS_LIST,    null);
+buildPills('modalities-grid',   MODALITIES_LIST,  'selected-green');
+buildPills('cultural-grid',     CULTURAL_LIST,    'selected-purple');
+buildPills('accessibility-grid',ACCESSIBILITY_LIST,'selected-teal');
+loadMLModel();
 </script>
 </body>
 </html>
