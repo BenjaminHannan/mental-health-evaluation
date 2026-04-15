@@ -1515,6 +1515,10 @@ async function loadMLModel() {
  */
 function computeMLAdjustment(p, f, bd) {
   const m = window.ML_MODEL;
+
+  // Placeholder model (all-zero weights) — skip inference entirely
+  if (!m.weights || m.weights.every(w => w === 0)) return 0;
+
   const vec = m.feature_names.map(name => {
     switch (name) {
       case 'insurance_match':       return bd.insurance >= 1.0 ? 1 : 0;
@@ -1543,15 +1547,15 @@ function computeMLAdjustment(p, f, bd) {
     }
   });
 
-  // Scaled dot product → tanh clamp → adjustment
-  let dot = 0;
-  for (let i = 0; i < vec.length; i++) dot += vec[i] * m.weights[i];
-  dot += m.bias || 0;
-  // Apply scaler
-  if (m.scaler) {
-    dot = (dot - (m.scaler.mean || 0)) / (m.scaler.std || 1);
-  }
-  // Map to [-20, +20] adjustment
+  // Apply per-feature StandardScaler (mean/std are arrays, one entry per feature)
+  const scaled = vec.map((v, i) => {
+    const mean = Array.isArray(m.scaler?.mean) ? m.scaler.mean[i] : (m.scaler?.mean || 0);
+    const std  = Array.isArray(m.scaler?.std)  ? m.scaler.std[i]  : (m.scaler?.std  || 1);
+    return (v - mean) / (std || 1);
+  });
+
+  // Dot product + bias → tanh → [-20, +20] adjustment
+  let dot = scaled.reduce((sum, v, i) => sum + v * m.weights[i], 0) + (m.bias || 0);
   return Math.tanh(dot) * 20;
 }
 
