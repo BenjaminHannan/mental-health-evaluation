@@ -3190,6 +3190,10 @@ const NLP_CONCEPTS = {
         'no motivation','lack of motivation','unmotivated','no drive',
       ]},
       { name: 'sleep disturbance', w: 0.9, phrases: [
+        'can\'t sleep','cant sleep','cannot sleep','trouble sleeping','hard to sleep',
+        'difficulty sleeping','insomnia','not sleeping','barely sleeping',
+        'haven\'t been sleeping','not sleeping well','sleep is terrible',
+        'tossing and turning','up all night','awake all night','waking up at night',
         'sleeping too much','oversleeping','can\'t get out of bed','sleep all day',
         'sleep all the time','sleeping 12 hours','sleeping 14 hours',
         'too much sleep','hypersomnia',
@@ -3227,7 +3231,7 @@ const NLP_CONCEPTS = {
         'flat','feel flat','everything feels flat','joy is gone',
         'can\'t feel happy','happiness doesn\'t reach me',
       ]},
-      { name: 'general mention', w: 0.5, phrases: [
+      { name: 'general mention', w: 0.7, phrases: [
         'depression','depressive','depressed','sad','sadness','melancholy',
         'feeling down','feel down','blue','in a slump','the blues',
         'bummed out','so down lately',
@@ -3270,7 +3274,11 @@ const NLP_CONCEPTS = {
         'procrastinate because of anxiety','freeze up','freeze',
       ]},
       { name: 'sleep / physical tension', w: 0.9, phrases: [
+        'can\'t sleep','cant sleep','cannot sleep','trouble sleeping','hard to sleep',
+        'difficulty sleeping','insomnia','not sleeping','barely sleeping',
+        'haven\'t been sleeping','not sleeping well','sleep is terrible',
         'lying awake','can\'t sleep because of thoughts','mind too active to sleep',
+        'tossing and turning','up all night','awake all night','waking up at night',
         'anxious at night','always on edge','on edge','tense','muscle tension',
         'jaw clenching','grinding teeth','bruxism','stomach in knots',
         'butterflies all the time','pit in my stomach','nauseous from anxiety',
@@ -3284,7 +3292,7 @@ const NLP_CONCEPTS = {
         'scared of everything','afraid of everything','everything scares me',
         'scared of my own shadow',
       ]},
-      { name: 'general mention', w: 0.5, phrases: [
+      { name: 'general mention', w: 0.7, phrases: [
         'anxiety','anxious','nervous','worried','worrying','dread','scared',
         'fear','fearful','apprehensive','uneasy','restless',
         // colloquial
@@ -3889,11 +3897,12 @@ const NLP_COOCCURRENCE = [
 
 // ── Context modifiers ──
 const NLP_INTENSITY_WORDS = [
-  'very','extremely','severely','intensely','deeply','profoundly','constantly',
+  'very','really','extremely','severely','intensely','deeply','profoundly','constantly',
   'always','every day','every single day','all the time','nonstop','perpetually',
   'unbearably','overwhelmingly','cripplingly','completely','totally','utterly',
   'absolutely','so so','really really','so much','a lot','more and more',
-  'getting worse','worse and worse','at its worst',
+  'getting worse','worse and worse','at its worst','super','hella','mad',
+  'incredibly','terribly','awfully','seriously',
 ];
 
 const NLP_HEDGE_WORDS = [
@@ -3936,16 +3945,16 @@ function nlpNormalise(text) {
   return text
     .toLowerCase()
     .replace(/[''`]/g, "'")
-    .replace(/[^a-z0-9\s']/g, ' ')
+    .replace(/[^a-z0-9\s'.!?]/g, ' ')   // keep sentence-ending punctuation
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 function nlpSentences(normText) {
-  // Split on sentence boundaries, preserve moderate length fragments
+  // Split on sentence boundaries, then strip leftover punctuation from fragments
   return normText
     .split(/(?<=[.!?])\s+|[\n\r]+/)
-    .map(s => s.trim())
+    .map(s => s.replace(/[.!?]/g, '').trim())
     .filter(s => s.length > 2);
 }
 
