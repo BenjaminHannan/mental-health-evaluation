@@ -1,7 +1,6 @@
 {
-  "version": "placeholder",
-  "model_type": "placeholder",
-  "note": "Run ml/train.py after collecting interaction data to replace this file with trained weights.",
+  "version": "2.0",
+  "model_type": "bayesian_ltr",
   "feature_names": [
     "insurance_match",
     "insurance_partial",
@@ -24,14 +23,421 @@
     "urgency_is_urgent",
     "user_uninsured",
     "evening_hours",
-    "walk_in"
+    "walk_in",
+    "ins_x_concerns",
+    "ins_x_age",
+    "crisis_x_services",
+    "tele_x_available",
+    "concerns_x_modality",
+    "urgent_x_crisis_center",
+    "medicaid_x_uninsured",
+    "cultural_x_language"
   ],
-  "weights": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-  "bias": 0.0,
+  "weights": [
+    2.4333076990973085e-05,
+    -0.00011221471537905888,
+    0.0002534879995702291,
+    0.0005713422177629568,
+    -4.983945935631574e-05,
+    -0.0002205724345692628,
+    -0.00018771386811693424,
+    0.0003197892396703421,
+    8.141792811530344e-05,
+    0.00015395250235793325,
+    -0.0003811719725907249,
+    -9.25635609922714e-20,
+    0.00022553585886696538,
+    -0.0003811719725907249,
+    -0.00021381228830378004,
+    -0.0003811719725907249,
+    -0.00021381228830378017,
+    -0.0009210590949475583,
+    0.0002460130363756224,
+    -0.0005178310608562698,
+    1.3633909392450345e-20,
+    -0.00021381228830378007,
+    0.0002530853339132563,
+    -0.00015886402232781575,
+    -0.00022057243456926245,
+    -0.00038117197259072516,
+    0.0003742707286133057,
+    -3.839708722787768e-06,
+    -0.00043580640502969827,
+    -0.00015639428686859097
+  ],
+  "bias": 0.6353916401909814,
   "scaler": {
-    "mean": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    "std":  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    "mean": [
+      0.648,
+      0.248,
+      0.852,
+      0.5540080000000001,
+      0.908,
+      0.018,
+      0.914,
+      0.616,
+      0.39331799999999995,
+      0.039,
+      0.2,
+      0.0,
+      0.07,
+      0.2,
+      0.27,
+      0.2,
+      0.27,
+      0.09,
+      0.194,
+      0.134,
+      0.0,
+      0.27,
+      0.36034400000000005,
+      0.56,
+      0.018,
+      0.2,
+      0.21929994400000002,
+      0.002,
+      0.028,
+      0.033
+    ],
+    "std": [
+      0.4775939698111775,
+      0.4318518264405045,
+      0.35509998591945824,
+      0.35511569936571413,
+      0.28902595039200096,
+      0.13295111883696217,
+      0.2803640490505157,
+      0.48635789291426296,
+      0.25552747968858514,
+      0.17023219436992584,
+      0.4000000000000003,
+      1.0,
+      0.25514701644346033,
+      0.4000000000000003,
+      0.44395945760846267,
+      0.4000000000000003,
+      0.44395945760846267,
+      0.28618176042508303,
+      0.3954288810898876,
+      0.3406523154185209,
+      1.0,
+      0.44395945760846267,
+      0.38924570346247966,
+      0.4963869458396336,
+      0.13295111883696217,
+      0.4000000000000003,
+      0.22510054733166862,
+      0.044676615807377355,
+      0.16497272501840976,
+      0.15300653580811577
+    ]
   },
-  "training_samples": 0,
-  "train_rmse": null
+  "training_samples": 500,
+  "train_rmse": 0.29472,
+  "train_mae": 0.26292,
+  "spearman": 0.10229,
+  "ndcg5": 0.62257,
+  "confidence": {
+    "mean_std": 0.34156,
+    "std_of_std": 0.00038,
+    "alpha": 8.58541,
+    "lambda": 140630.35819
+  },
+  "shap": {
+    "urgency_is_crisis": {
+      "weight": -0.00092,
+      "rank": 1,
+      "direction": "negative",
+      "abs_importance": 0.00092
+    },
+    "concerns_overlap": {
+      "weight": 0.00057,
+      "rank": 2,
+      "direction": "positive",
+      "abs_importance": 0.00057
+    },
+    "user_uninsured": {
+      "weight": -0.00052,
+      "rank": 3,
+      "direction": "negative",
+      "abs_importance": 0.00052
+    },
+    "medicaid_x_uninsured": {
+      "weight": -0.00044,
+      "rank": 4,
+      "direction": "negative",
+      "abs_importance": 0.00044
+    },
+    "tele_x_available": {
+      "weight": -0.00038,
+      "rank": 5,
+      "direction": "negative",
+      "abs_importance": 0.00038
+    },
+    "has_telehealth": {
+      "weight": -0.00038,
+      "rank": 6,
+      "direction": "negative",
+      "abs_importance": 0.00038
+    },
+    "accepts_medicaid": {
+      "weight": -0.00038,
+      "rank": 7,
+      "direction": "negative",
+      "abs_importance": 0.00038
+    },
+    "is_cmhc": {
+      "weight": -0.00038,
+      "rank": 8,
+      "direction": "negative",
+      "abs_importance": 0.00038
+    },
+    "concerns_x_modality": {
+      "weight": 0.00037,
+      "rank": 9,
+      "direction": "positive",
+      "abs_importance": 0.00037
+    },
+    "gender_match": {
+      "weight": 0.00032,
+      "rank": 10,
+      "direction": "positive",
+      "abs_importance": 0.00032
+    },
+    "age_match": {
+      "weight": 0.00025,
+      "rank": 11,
+      "direction": "positive",
+      "abs_importance": 0.00025
+    },
+    "ins_x_concerns": {
+      "weight": 0.00025,
+      "rank": 12,
+      "direction": "positive",
+      "abs_importance": 0.00025
+    },
+    "urgency_is_urgent": {
+      "weight": 0.00025,
+      "rank": 13,
+      "direction": "positive",
+      "abs_importance": 0.00025
+    },
+    "is_crisis_center": {
+      "weight": 0.00023,
+      "rank": 14,
+      "direction": "positive",
+      "abs_importance": 0.00023
+    },
+    "crisis_match": {
+      "weight": -0.00022,
+      "rank": 15,
+      "direction": "negative",
+      "abs_importance": 0.00022
+    },
+    "crisis_x_services": {
+      "weight": -0.00022,
+      "rank": 16,
+      "direction": "negative",
+      "abs_importance": 0.00022
+    },
+    "has_crisis_services": {
+      "weight": -0.00021,
+      "rank": 17,
+      "direction": "negative",
+      "abs_importance": 0.00021
+    },
+    "walk_in": {
+      "weight": -0.00021,
+      "rank": 18,
+      "direction": "negative",
+      "abs_importance": 0.00021
+    },
+    "accepts_uninsured": {
+      "weight": -0.00021,
+      "rank": 19,
+      "direction": "negative",
+      "abs_importance": 0.00021
+    },
+    "language_match": {
+      "weight": -0.00019,
+      "rank": 20,
+      "direction": "negative",
+      "abs_importance": 0.00019
+    },
+    "ins_x_age": {
+      "weight": -0.00016,
+      "rank": 21,
+      "direction": "negative",
+      "abs_importance": 0.00016
+    },
+    "cultural_x_language": {
+      "weight": -0.00016,
+      "rank": 22,
+      "direction": "negative",
+      "abs_importance": 0.00016
+    },
+    "cultural_overlap": {
+      "weight": 0.00015,
+      "rank": 23,
+      "direction": "positive",
+      "abs_importance": 0.00015
+    },
+    "insurance_partial": {
+      "weight": -0.00011,
+      "rank": 24,
+      "direction": "negative",
+      "abs_importance": 0.00011
+    },
+    "modality_overlap": {
+      "weight": 8e-05,
+      "rank": 25,
+      "direction": "positive",
+      "abs_importance": 8e-05
+    },
+    "telehealth_match": {
+      "weight": -5e-05,
+      "rank": 26,
+      "direction": "negative",
+      "abs_importance": 5e-05
+    },
+    "insurance_match": {
+      "weight": 2e-05,
+      "rank": 27,
+      "direction": "positive",
+      "abs_importance": 2e-05
+    },
+    "urgent_x_crisis_center": {
+      "weight": -0.0,
+      "rank": 28,
+      "direction": "negative",
+      "abs_importance": 0.0
+    },
+    "is_fqhc": {
+      "weight": -0.0,
+      "rank": 29,
+      "direction": "negative",
+      "abs_importance": 0.0
+    },
+    "evening_hours": {
+      "weight": 0.0,
+      "rank": 30,
+      "direction": "positive",
+      "abs_importance": 0.0
+    }
+  },
+  "fairness": {
+    "insurance": {
+      "medicaid": {
+        "count": 124,
+        "rmse": 0.29265,
+        "mae": 0.26209,
+        "mean_pred": 0.6355,
+        "mean_true": 0.5645,
+        "gap": 0.0709
+      },
+      "private": {
+        "count": 255,
+        "rmse": 0.30106,
+        "mae": 0.27087,
+        "mean_pred": 0.6359,
+        "mean_true": 0.5824,
+        "gap": 0.0535
+      },
+      "uninsured": {
+        "count": 67,
+        "rmse": 0.27015,
+        "mae": 0.23121,
+        "mean_pred": 0.6334,
+        "mean_true": 0.5537,
+        "gap": 0.0796
+      },
+      "_max_disparity": 0.0025
+    },
+    "age_group": {
+      "child": {
+        "count": 47,
+        "rmse": 0.28795,
+        "mae": 0.25416,
+        "mean_pred": 0.6355,
+        "mean_true": 0.5564,
+        "gap": 0.0791
+      },
+      "teen": {
+        "count": 70,
+        "rmse": 0.28452,
+        "mae": 0.24889,
+        "mean_pred": 0.635,
+        "mean_true": 0.5971,
+        "gap": 0.0379
+      },
+      "adult": {
+        "count": 291,
+        "rmse": 0.2979,
+        "mae": 0.26778,
+        "mean_pred": 0.6356,
+        "mean_true": 0.5665,
+        "gap": 0.0691
+      },
+      "senior": {
+        "count": 92,
+        "rmse": 0.29564,
+        "mae": 0.26271,
+        "mean_pred": 0.635,
+        "mean_true": 0.625,
+        "gap": 0.01
+      },
+      "_max_disparity": 0.0006
+    },
+    "urgency": {
+      "crisis": {
+        "count": 45,
+        "rmse": 0.2929,
+        "mae": 0.25974,
+        "mean_pred": 0.6319,
+        "mean_true": 0.5078,
+        "gap": 0.1242
+      },
+      "urgent": {
+        "count": 97,
+        "rmse": 0.29259,
+        "mae": 0.26273,
+        "mean_pred": 0.6366,
+        "mean_true": 0.5948,
+        "gap": 0.0417
+      },
+      "routine": {
+        "count": 233,
+        "rmse": 0.29133,
+        "mae": 0.25717,
+        "mean_pred": 0.6355,
+        "mean_true": 0.5704,
+        "gap": 0.0651
+      },
+      "exploring": {
+        "count": 125,
+        "rmse": 0.30317,
+        "mae": 0.27494,
+        "mean_pred": 0.6355,
+        "mean_true": 0.6148,
+        "gap": 0.0207
+      },
+      "_max_disparity": 0.0047
+    }
+  },
+  "cv_scores": {
+    "rmse": {
+      "mean": 0.29024,
+      "std": 0.00843
+    },
+    "ndcg5": {
+      "mean": 0.42146,
+      "std": 0.10591
+    },
+    "spearman": {
+      "mean": -0.06299,
+      "std": 0.0806
+    }
+  },
+  "trained_at": "2026-04-16T02:18:05.714256Z",
+  "data_hash": "cdacb7c9"
 }

@@ -409,6 +409,57 @@
       background: var(--plum-light); color: var(--plum);
       border-radius: 3px; padding: .08rem .38rem;
     }
+
+    /* ── Confidence interval ── */
+    .confidence-range {
+      font-size: .65rem; color: var(--text-muted); margin-top: .1rem; text-align: center;
+    }
+    .score-badge .confidence-range { font-size: .55rem; line-height: 1.2; }
+
+    /* ── SHAP explainability panel ── */
+    .shap-panel {
+      margin-top: .8rem; padding: .7rem .8rem; background: var(--plum-light);
+      border-radius: var(--radius-sm); border-left: 3px solid var(--plum);
+    }
+    .shap-title {
+      font-size: .72rem; font-weight: 700; color: var(--plum); margin-bottom: .45rem;
+      display: flex; align-items: center; gap: .35rem;
+    }
+    .shap-title svg { width: 14px; height: 14px; }
+    .shap-row {
+      display: flex; align-items: center; gap: .4rem; margin-bottom: .3rem; font-size: .68rem;
+    }
+    .shap-label { flex: 0 0 110px; color: var(--text-muted); text-align: right; }
+    .shap-bar-wrap {
+      flex: 1; height: 10px; background: var(--bg); border-radius: 5px; overflow: hidden;
+      position: relative;
+    }
+    .shap-bar-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--border); }
+    .shap-bar {
+      position: absolute; top: 1px; bottom: 1px; border-radius: 4px; min-width: 2px;
+      transition: width .3s ease;
+    }
+    .shap-bar.positive { background: var(--sage); left: 50%; }
+    .shap-bar.negative { background: var(--burgundy); right: 50%; }
+    .shap-val { flex: 0 0 45px; font-size: .62rem; font-weight: 600; }
+    .shap-val.pos { color: var(--sage-dim); }
+    .shap-val.neg { color: var(--burgundy); }
+
+    /* ── ML performance counter ── */
+    .ml-perf {
+      display: inline-flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+      margin-top: .3rem; font-size: .68rem; color: var(--text-muted);
+    }
+    .ml-perf-stat {
+      display: inline-flex; align-items: center; gap: .25rem;
+      background: var(--bg); padding: .15rem .45rem; border-radius: var(--radius-sm);
+    }
+    .ml-perf-stat .perf-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .ml-perf-stat .perf-dot.good { background: var(--sage); }
+    .ml-perf-stat .perf-dot.ok   { background: var(--amber); }
+    .ml-perf-stat .perf-dot.warn { background: var(--burgundy); }
     .source-samhsa {
       position: absolute; top: .7rem; right: 2.5rem;
       font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
@@ -1937,14 +1988,32 @@ function scoreProvider(p, f) {
 
   // ML adjustment (if model loaded)
   let mlAdj = 0;
+  let shapValues = [];
+  let confidence = null;
   if (window.ML_MODEL) {
-    mlAdj = computeMLAdjustment(p, f, bd);
+    const mlResult = computeMLAdjustment(p, f, bd);
+    mlAdj = mlResult.adjustment;
+    shapValues = mlResult.shapValues;
+    confidence = mlResult.confidence;
+  }
+
+  const finalScore = Math.min(99, Math.max(1, ruleScore + Math.round(mlAdj) + Math.round((prox - 0.5) * 6)));
+
+  // Compute confidence interval on the final score
+  let scoreRange = null;
+  if (confidence) {
+    scoreRange = {
+      low:  Math.max(1, finalScore + confidence.low),
+      high: Math.min(99, finalScore + confidence.high),
+    };
   }
 
   return {
-    score: Math.min(99, Math.max(1, ruleScore + Math.round(mlAdj) + Math.round((prox - 0.5) * 6))),
+    score: finalScore,
     ruleScore,
     mlAdj: Math.round(mlAdj),
+    shapValues,
+    scoreRange,
     breakdown: bd,
     usedML: !!window.ML_MODEL,
   };
@@ -2001,62 +2070,166 @@ async function loadMLModel() {
       document.getElementById('ml-dot').classList.add('loaded');
       document.getElementById('ml-status-text').textContent =
         `ML model v${model.version} loaded (${model.feature_names.length} features)`;
-      document.getElementById('ml-notice').innerHTML =
-        `ML model loaded (trained on ${model.training_samples || '?'} interactions). ` +
-        `Scores include a learned adjustment on top of the rule-based model.`;
+
+      // Build rich performance notice with metrics
+      const n = model.training_samples || '?';
+      const type = (model.model_type || '').replace(/_/g, ' ');
+      let noticeHTML = `<strong>ML model active</strong> — ${type} trained on ${n} interactions with ${model.feature_names.length} features.`;
+
+      // Performance metrics
+      const metrics = [];
+      if (model.ndcg5 != null)   metrics.push(`NDCG@5: ${(model.ndcg5 * 100).toFixed(1)}%`);
+      if (model.spearman != null) metrics.push(`Spearman: ${model.spearman.toFixed(3)}`);
+      if (model.train_rmse != null) metrics.push(`RMSE: ${model.train_rmse.toFixed(4)}`);
+      if (model.train_mae != null) metrics.push(`MAE: ${model.train_mae.toFixed(4)}`);
+
+      if (metrics.length) {
+        noticeHTML += `<div class="ml-perf">`;
+        metrics.forEach(m => {
+          const val = parseFloat(m.split(': ')[1]);
+          const label = m.split(': ')[0];
+          let dot = 'good';
+          if (label === 'NDCG@5' && val < 50) dot = 'warn';
+          else if (label === 'RMSE' && val > 0.35) dot = 'warn';
+          else if (label === 'RMSE' && val > 0.25) dot = 'ok';
+          noticeHTML += `<span class="ml-perf-stat"><span class="perf-dot ${dot}"></span>${m}</span>`;
+        });
+        noticeHTML += `</div>`;
+      }
+
+      // CV scores
+      if (model.cv_scores && model.cv_scores.ndcg5) {
+        noticeHTML += `<div style="font-size:.65rem;margin-top:.25rem;color:var(--text-muted)">` +
+          `Cross-validated: NDCG@5 ${(model.cv_scores.ndcg5.mean * 100).toFixed(1)}% ` +
+          `(±${(model.cv_scores.ndcg5.std * 100).toFixed(1)}%)` +
+          `</div>`;
+      }
+
+      // Fairness status
+      if (model.fairness) {
+        const flags = Object.values(model.fairness).filter(g => typeof g === 'object' && g._max_disparity > 0.15).length;
+        if (flags === 0) {
+          noticeHTML += `<div style="font-size:.65rem;margin-top:.15rem;color:var(--sage-dim)">Fairness audit: no disparities detected across insurance, age, and urgency subgroups.</div>`;
+        } else {
+          noticeHTML += `<div style="font-size:.65rem;margin-top:.15rem;color:var(--burgundy)">${flags} fairness concern(s) — see training log for details.</div>`;
+        }
+      }
+
+      document.getElementById('ml-notice').innerHTML = noticeHTML;
       document.getElementById('ml-notice').classList.add('active');
     }
   } catch (_) { /* no model yet, fine */ }
 }
 
 /**
- * Build the ML feature vector — must match the order in ml/train.py FEATURE_NAMES.
- * Returns a score adjustment in the range [-20, +20].
+ * Build the ML feature vector — must match the order in ml/train.py ALL_FEATURE_NAMES.
+ * Returns { adjustment, shapValues, confidence } for score adjustment and explainability.
  */
+
+// Interaction feature definitions (must match train.py INTERACTION_FEATURES)
+const ML_INTERACTION_FEATURES = [
+  ['insurance_match', 'concerns_overlap',   'ins_x_concerns'],
+  ['insurance_match', 'age_match',          'ins_x_age'],
+  ['crisis_match',    'has_crisis_services', 'crisis_x_services'],
+  ['telehealth_match','has_telehealth',     'tele_x_available'],
+  ['concerns_overlap','modality_overlap',   'concerns_x_modality'],
+  ['urgency_is_crisis','is_crisis_center',  'urgent_x_crisis_center'],
+  ['accepts_medicaid', 'user_uninsured',    'medicaid_x_uninsured'],
+  ['cultural_overlap', 'language_match',    'cultural_x_language'],
+];
+
+// Human-readable labels for SHAP display
+const SHAP_LABELS = {
+  insurance_match: 'Insurance match', insurance_partial: 'Sliding scale', age_match: 'Age group',
+  concerns_overlap: 'Concerns fit', telehealth_match: 'Telehealth', crisis_match: 'Crisis services',
+  language_match: 'Language', gender_match: 'Gender pref', modality_overlap: 'Therapy approach',
+  cultural_overlap: 'Cultural fit', is_cmhc: 'Community MHC', is_fqhc: 'Health center',
+  is_crisis_center: 'Crisis center', accepts_medicaid: 'Medicaid', accepts_uninsured: 'Uninsured OK',
+  has_telehealth: 'Has telehealth', has_crisis_services: 'Crisis services', urgency_is_crisis: 'Crisis urgency',
+  urgency_is_urgent: 'Urgent need', user_uninsured: 'No insurance', evening_hours: 'Evening hours',
+  walk_in: 'Walk-in OK', ins_x_concerns: 'Insurance+concerns', ins_x_age: 'Insurance+age',
+  crisis_x_services: 'Crisis+services', tele_x_available: 'Tele+available',
+  concerns_x_modality: 'Concerns+approach', urgent_x_crisis_center: 'Urgent+crisis ctr',
+  medicaid_x_uninsured: 'Medicaid+uninsured', cultural_x_language: 'Cultural+language',
+};
+
+function getBaseFeatureValue(name, p, f, bd) {
+  switch (name) {
+    case 'insurance_match':       return bd.insurance >= 1.0 ? 1 : 0;
+    case 'insurance_partial':     return bd.insurance >= 0.3 && bd.insurance < 1.0 ? 1 : 0;
+    case 'age_match':             return bd.ageGroup >= 1.0 ? 1 : 0;
+    case 'concerns_overlap':      return bd.concerns;
+    case 'telehealth_match':      return bd.telehealth >= 0.9 ? 1 : 0;
+    case 'crisis_match':          return (f.urgency === 'crisis' && p.crisisServices) ? 1 : 0;
+    case 'language_match':        return bd.language >= 1.0 ? 1 : 0;
+    case 'gender_match':          return bd.providerGender >= 1.0 ? 1 : 0;
+    case 'modality_overlap':      return bd.modalities;
+    case 'cultural_overlap':      return bd.cultural;
+    case 'is_cmhc':               return p.type.includes('Community Mental Health') ? 1 : 0;
+    case 'is_fqhc':               return p.type.includes('Federally Qualified') ? 1 : 0;
+    case 'is_crisis_center':      return p.type.includes('Crisis') ? 1 : 0;
+    case 'accepts_medicaid':      return p.insurance.includes('medicaid') ? 1 : 0;
+    case 'accepts_uninsured':     return p.insurance.includes('uninsured') ? 1 : 0;
+    case 'has_telehealth':        return p.telehealth ? 1 : 0;
+    case 'has_crisis_services':   return p.crisisServices ? 1 : 0;
+    case 'urgency_is_crisis':     return f.urgency === 'crisis' ? 1 : 0;
+    case 'urgency_is_urgent':     return f.urgency === 'urgent' ? 1 : 0;
+    case 'user_uninsured':        return f.insurance === 'uninsured' || f.insurance === 'sliding_scale' ? 1 : 0;
+    case 'evening_hours':         return p.accessibility && p.accessibility.includes('evening') ? 1 : 0;
+    case 'walk_in':               return p.accessibility && p.accessibility.includes('walk_in') ? 1 : 0;
+    default:                      return 0;
+  }
+}
+
 function computeMLAdjustment(p, f, bd) {
   const m = window.ML_MODEL;
 
   // Placeholder model (all-zero weights) — skip inference entirely
-  if (!m.weights || m.weights.every(w => w === 0)) return 0;
+  if (!m.weights || m.weights.every(w => w === 0)) return { adjustment: 0, shapValues: [], confidence: null };
 
+  // Build base feature vector
+  const baseNames = m.feature_names.filter(n => !n.includes('_x_'));
+  const baseMap = {};
+  baseNames.forEach(name => { baseMap[name] = getBaseFeatureValue(name, p, f, bd); });
+
+  // Build full feature vector (base + interaction features)
   const vec = m.feature_names.map(name => {
-    switch (name) {
-      case 'insurance_match':       return bd.insurance >= 1.0 ? 1 : 0;
-      case 'insurance_partial':     return bd.insurance >= 0.3 && bd.insurance < 1.0 ? 1 : 0;
-      case 'age_match':             return bd.ageGroup >= 1.0 ? 1 : 0;
-      case 'concerns_overlap':      return bd.concerns;
-      case 'telehealth_match':      return bd.telehealth >= 0.9 ? 1 : 0;
-      case 'crisis_match':          return (f.urgency === 'crisis' && p.crisisServices) ? 1 : 0;
-      case 'language_match':        return bd.language >= 1.0 ? 1 : 0;
-      case 'gender_match':          return bd.providerGender >= 1.0 ? 1 : 0;
-      case 'modality_overlap':      return bd.modalities;
-      case 'cultural_overlap':      return bd.cultural;
-      case 'is_cmhc':               return p.type.includes('Community Mental Health') ? 1 : 0;
-      case 'is_fqhc':               return p.type.includes('Federally Qualified') ? 1 : 0;
-      case 'is_crisis_center':      return p.type.includes('Crisis') ? 1 : 0;
-      case 'accepts_medicaid':      return p.insurance.includes('medicaid') ? 1 : 0;
-      case 'accepts_uninsured':     return p.insurance.includes('uninsured') ? 1 : 0;
-      case 'has_telehealth':        return p.telehealth ? 1 : 0;
-      case 'has_crisis_services':   return p.crisisServices ? 1 : 0;
-      case 'urgency_is_crisis':     return f.urgency === 'crisis' ? 1 : 0;
-      case 'urgency_is_urgent':     return f.urgency === 'urgent' ? 1 : 0;
-      case 'user_uninsured':        return f.insurance === 'uninsured' || f.insurance === 'sliding_scale' ? 1 : 0;
-      case 'evening_hours':         return p.accessibility && p.accessibility.includes('evening') ? 1 : 0;
-      case 'walk_in':               return p.accessibility && p.accessibility.includes('walk_in') ? 1 : 0;
-      default:                      return 0;
-    }
+    if (baseMap[name] !== undefined) return baseMap[name];
+    // Interaction feature — find matching pair
+    const pair = ML_INTERACTION_FEATURES.find(([,,n]) => n === name);
+    if (pair) return (baseMap[pair[0]] || 0) * (baseMap[pair[1]] || 0);
+    return 0;
   });
 
-  // Apply per-feature StandardScaler (mean/std are arrays, one entry per feature)
+  // Apply per-feature StandardScaler
   const scaled = vec.map((v, i) => {
     const mean = Array.isArray(m.scaler?.mean) ? m.scaler.mean[i] : (m.scaler?.mean || 0);
     const std  = Array.isArray(m.scaler?.std)  ? m.scaler.std[i]  : (m.scaler?.std  || 1);
     return (v - mean) / (std || 1);
   });
 
-  // Dot product + bias → tanh → [-20, +20] adjustment
+  // Dot product + bias
   let dot = scaled.reduce((sum, v, i) => sum + v * m.weights[i], 0) + (m.bias || 0);
-  return Math.tanh(dot) * 20;
+  const adjustment = Math.tanh(dot) * 20;
+
+  // SHAP values: weight_i * scaled_i (exact for linear models)
+  const shapValues = m.feature_names.map((name, i) => ({
+    feature: name,
+    label: SHAP_LABELS[name] || name,
+    value: scaled[i] * m.weights[i],
+    raw: vec[i],
+  })).filter(s => Math.abs(s.value) > 0.0001)
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+    .slice(0, 6);
+
+  // Confidence interval from model uncertainty
+  let confidence = null;
+  if (m.confidence && m.confidence.mean_std > 0) {
+    const stdPts = m.confidence.mean_std * 20; // scale to point range
+    confidence = { low: Math.round(adjustment - stdPts * 1.96), high: Math.round(adjustment + stdPts * 1.96) };
+  }
+
+  return { adjustment, shapValues, confidence };
 }
 
 // ═══════════════════════════════════════════════════
@@ -2193,6 +2366,30 @@ function renderCard(p, sd, filters) {
   const breakdown = Object.entries(sd.breakdown)
     .map(([k, v]) => sfTag(v, BD_LABELS[k] || k)).join('');
 
+  // Build SHAP explainability panel
+  let shapHTML = '';
+  if (sd.usedML && sd.shapValues && sd.shapValues.length > 0) {
+    const maxShap = Math.max(...sd.shapValues.map(s => Math.abs(s.value)), 0.001);
+    const shapRows = sd.shapValues.map(sv => {
+      const pct = Math.min(50, (Math.abs(sv.value) / maxShap) * 45);
+      const cls2 = sv.value >= 0 ? 'positive' : 'negative';
+      const valCls = sv.value >= 0 ? 'pos' : 'neg';
+      const sign = sv.value >= 0 ? '+' : '';
+      return `<div class="shap-row">
+        <span class="shap-label">${sv.label}</span>
+        <div class="shap-bar-wrap"><div class="shap-bar-center"></div><div class="shap-bar ${cls2}" style="width:${pct}%"></div></div>
+        <span class="shap-val ${valCls}">${sign}${sv.value.toFixed(3)}</span>
+      </div>`;
+    }).join('');
+    shapHTML = `<div class="shap-panel">
+      <div class="shap-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Why this match?</div>
+      ${shapRows}
+    </div>`;
+  }
+
+  // Confidence interval display
+  const ciText = sd.scoreRange ? `<div class="confidence-range">${sd.scoreRange.low}–${sd.scoreRange.high}%</div>` : '';
+
   return `
 <div class="provider-card${p.crisisServices ? ' crisis-provider' : ''}"
      data-id="${p.id}" data-score="${s}" role="article" aria-expanded="false" tabindex="0">
@@ -2202,6 +2399,7 @@ function renderCard(p, sd, filters) {
   <div class="card-top">
     <div class="score-badge score-${cls}" aria-label="Match score ${s}%">
       ${s}<span class="score-label">match</span>
+      ${ciText}
     </div>
     <div class="card-info">
       <div class="provider-type">${p.type}${p.state !== 'US' ? ' · ' + p.state : ''}</div>
@@ -2215,6 +2413,7 @@ function renderCard(p, sd, filters) {
       <div class="score-bar-label"><span>Match score</span><span>${s}%${sd.usedML ? ' (ML-enhanced)' : ''}</span></div>
       <div class="score-bar-bg"><div class="score-bar-fill fill-${cls}" style="width:${s}%"></div></div>
       <div class="score-factors">${breakdown}</div>
+      ${shapHTML}
     </div>
     <div class="expand-item">
       <strong>Phone</strong>
