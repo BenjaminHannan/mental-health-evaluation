@@ -521,7 +521,7 @@
       transition: transform .2s;
       margin-left: .5rem;
     }
-    .nlp-panel-body { display: none; margin-top: 1rem; }
+    .nlp-panel-body { display: block; margin-top: 1rem; }
     .nlp-panel-body.open { display: block; }
 
     .nlp-desc {
@@ -532,23 +532,24 @@
     }
     textarea.nlp-input {
       width: 100%;
-      padding: .7rem .85rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      padding: .85rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
       font-family: inherit;
-      font-size: .875rem;
+      font-size: .95rem;
       color: var(--text);
       background: var(--surface);
-      line-height: 1.6;
+      line-height: 1.7;
       resize: vertical;
-      min-height: 100px;
+      min-height: 130px;
       transition: border-color .15s, box-shadow .15s;
     }
     textarea.nlp-input:focus {
       outline: none;
       border-color: var(--plum);
-      box-shadow: 0 0 0 3px rgba(82,57,110,.1);
+      box-shadow: 0 0 0 3px rgba(82,57,110,.12);
     }
+    textarea.nlp-input::placeholder { color: var(--text-subtle); }
     .nlp-actions {
       display: flex;
       align-items: center;
@@ -748,11 +749,171 @@
       color: var(--text-subtle);
     }
 
+    /* ── Review Callout Strip ── */
+    .review-callout {
+      background: linear-gradient(135deg, var(--sage-dim) 0%, var(--sage) 100%);
+      color: #fff;
+      padding: .9rem 1.5rem;
+    }
+    .review-callout-inner {
+      max-width: 880px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .review-callout-stars {
+      font-size: 1rem;
+      letter-spacing: .12em;
+      color: #ffd97a;
+      flex-shrink: 0;
+    }
+    .review-callout-text {
+      flex: 1;
+      font-size: .83rem;
+      line-height: 1.5;
+      color: #e0f0ee;
+      min-width: 200px;
+    }
+    .review-callout-text strong { color: #fff; font-weight: 600; }
+    .btn-review-callout {
+      background: #fff;
+      color: var(--sage-dim);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .45rem 1.1rem;
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      text-decoration: none;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .btn-review-callout:hover { background: var(--sage-light); }
+
+    /* ── NLP Primary Header ── */
+    .nlp-primary-header {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: .7rem;
+    }
+    .nlp-primary-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--navy);
+    }
+    .nlp-primary-subtitle {
+      font-size: .78rem;
+      color: var(--text-muted);
+      margin-top: -.1rem;
+      line-height: 1.5;
+      margin-bottom: .85rem;
+    }
+
+    /* ── Filters Toggle ── */
+    .filters-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      margin-top: 1.25rem;
+      padding: .65rem .9rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      transition: background .12s, border-color .12s;
+    }
+    .filters-toggle-row:hover { background: var(--navy-light); border-color: var(--navy); }
+    .filters-toggle-row.open { border-color: var(--navy); background: var(--navy-light); }
+    .filters-toggle-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .filters-toggle-row.open .filters-toggle-label { color: var(--navy); }
+    .filters-toggle-hint {
+      font-size: .73rem;
+      color: var(--text-subtle);
+    }
+    .filters-chevron {
+      color: var(--text-subtle);
+      font-size: .7rem;
+      transition: transform .2s;
+    }
+    .filters-toggle-row.open .filters-chevron { transform: rotate(180deg); }
+    .filters-body { display: none; }
+    .filters-body.open { display: block; }
+
+    /* ── NLP detected notice (in results area) ── */
+    .nlp-search-notice {
+      display: none;
+      background: var(--plum-light);
+      border: 1px solid #c4b6d8;
+      border-radius: var(--radius-sm);
+      padding: .55rem .85rem;
+      font-size: .78rem;
+      color: var(--plum);
+      margin-bottom: .85rem;
+    }
+    .nlp-search-notice.active { display: block; }
+    .nlp-search-notice strong { font-weight: 600; }
+
+    /* ── Post-results review nudge ── */
+    .review-nudge {
+      display: none;
+      margin-top: 1.5rem;
+      background: var(--sage-light);
+      border: 1px solid #bdd8d4;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .review-nudge.active { display: flex; }
+    .review-nudge-text {
+      flex: 1;
+      font-size: .83rem;
+      color: var(--sage-dim);
+      line-height: 1.5;
+      min-width: 180px;
+    }
+    .review-nudge-text strong { color: var(--sage-dim); font-weight: 600; }
+    .btn-review-nudge {
+      background: var(--sage);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .45rem 1.1rem;
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+    .btn-review-nudge:hover { background: var(--sage-dim); }
+
     @media (max-width: 600px) {
       .search-card { padding: 1.25rem 1rem; }
       .form-grid { grid-template-columns: 1fr; }
       .nlp-triggers { padding-left: 0; }
       .nlp-det-label { width: 120px; }
+      .review-callout-inner { gap: .65rem; }
+      .review-callout { padding: .8rem 1rem; }
     }
   </style>
 </head>
@@ -768,8 +929,18 @@
   <div class="eyebrow">Upper Valley &mdash; New Hampshire &amp; Vermont</div>
   <h1>Mental Health Resource Finder</h1>
   <p>Find matched providers by insurance, age, telehealth preference, and more — including live results from the SAMHSA national database.</p>
-  <a class="nav-reviews" href="reviews.html">Leave a provider review &rarr;</a>
 </header>
+
+<div class="review-callout" role="complementary">
+  <div class="review-callout-inner">
+    <div class="review-callout-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    <div class="review-callout-text">
+      <strong>Already visited a provider?</strong>
+      Your review helps others in the Upper Valley find the right care — and trains the matching model.
+    </div>
+    <a href="reviews.html" class="btn-review-callout">Leave a review</a>
+  </div>
+</div>
 
 <main>
 <div class="container">
@@ -777,8 +948,60 @@
   <div class="search-card" id="search-card">
     <form id="search-form" novalidate>
 
+      <!-- ── PRIMARY: NLP Section (always open) ── -->
+      <div class="form-section" style="margin-bottom:0">
+        <div class="nlp-primary-header">
+          <span class="nlp-badge">AI</span>
+          <span class="nlp-primary-title">Describe what you&rsquo;re going through</span>
+        </div>
+        <p class="nlp-primary-subtitle">
+          Write freely in your own words. The tool reads your description, identifies likely concerns,
+          and finds matched providers — no text is ever transmitted.
+        </p>
+        <textarea class="nlp-input" id="nlp-input"
+          placeholder="For example: &quot;I've been feeling really low lately and can't seem to enjoy things I used to love. I also panic sometimes when I think about work or being around people...&quot;"
+          rows="5"></textarea>
+        <div class="nlp-actions" style="margin-bottom:0">
+          <span class="nlp-privacy">
+            <span class="nlp-privacy-dot"></span>
+            Processed entirely in your browser — never transmitted
+          </span>
+        </div>
+        <div class="nlp-results" id="nlp-results" style="display:none">
+          <div class="nlp-results-head">
+            <span class="nlp-results-title">Analysis results</span>
+            <span class="nlp-char-count" id="nlp-char-count"></span>
+          </div>
+          <div class="nlp-results-body">
+            <div id="nlp-crisis-warning" class="nlp-crisis-warning" style="display:none">
+              Your description mentions thoughts of suicide or self-harm.
+              Please reach out now: <a href="tel:988">988</a> (call or text) &nbsp;&middot;&nbsp;
+              <a href="tel:6034484400">(603) 448-4400</a> Headrest &nbsp;&middot;&nbsp;
+              Text HOME to <a href="sms:741741">741741</a>
+            </div>
+            <div class="nlp-highlight-block" id="nlp-highlight-block"></div>
+            <div class="nlp-detections" id="nlp-detections"></div>
+            <div class="nlp-apply-row">
+              <button type="button" class="btn-nlp-apply" id="nlp-apply-btn">Apply to concern filters</button>
+              <button type="button" class="btn-nlp-dismiss" id="nlp-dismiss-btn">Dismiss</button>
+              <span class="nlp-apply-note" id="nlp-apply-note"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECONDARY: Filters toggle ── -->
+      <div class="filters-toggle-row" id="filters-toggle" role="button" tabindex="0" aria-expanded="false">
+        <span class="filters-toggle-label">
+          &#9881; Customize your search
+          <span class="filters-toggle-hint" id="filters-hint">zip, insurance, age, concerns&hellip;</span>
+        </span>
+        <span class="filters-chevron" id="filters-chevron">&#9660;</span>
+      </div>
+      <div class="filters-body" id="filters-body">
+
       <!-- Section 1: Location & Basics -->
-      <div class="form-section">
+      <div class="form-section" style="margin-top:1.25rem">
         <div class="section-label">Location &amp; Coverage</div>
         <div class="form-grid">
           <div class="form-group">
@@ -890,57 +1113,6 @@
         </div>
       </div>
 
-      <!-- Section 3: NLP Situation Detector -->
-      <div class="form-section">
-        <div class="nlp-toggle-row" id="nlp-toggle" role="button" aria-expanded="false" tabindex="0">
-          <div style="display:flex;align-items:center;gap:.6rem">
-            <div class="section-label" style="margin:0">Describe Your Situation</div>
-            <span class="nlp-badge">AI</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:.3rem">
-            <span style="font-size:.72rem;color:var(--text-subtle)">auto-detect concerns</span>
-            <span class="nlp-chevron" id="nlp-chevron">&#9660;</span>
-          </div>
-        </div>
-        <div class="nlp-panel-body" id="nlp-panel-body">
-          <p class="nlp-desc">
-            Write freely about what you have been experiencing. The tool identifies likely conditions
-            from your words using pattern matching — no text is sent anywhere.
-          </p>
-          <textarea class="nlp-input" id="nlp-input"
-            placeholder="For example: &quot;I haven't been sleeping well and feel anxious most days. I had a really bad experience a few years ago that I can't stop thinking about...&quot;"
-            rows="4"></textarea>
-          <div class="nlp-actions">
-            <button type="button" class="btn-nlp" id="nlp-analyze-btn">Analyze</button>
-            <span class="nlp-privacy">
-              <span class="nlp-privacy-dot"></span>
-              Processed entirely in your browser — never transmitted
-            </span>
-          </div>
-          <div class="nlp-results" id="nlp-results" style="display:none">
-            <div class="nlp-results-head">
-              <span class="nlp-results-title">Analysis results</span>
-              <span class="nlp-char-count" id="nlp-char-count"></span>
-            </div>
-            <div class="nlp-results-body">
-              <div id="nlp-crisis-warning" class="nlp-crisis-warning" style="display:none">
-                Your description mentions thoughts of suicide or self-harm.
-                Please reach out now: <a href="tel:988">988</a> (call or text) &nbsp;&middot;&nbsp;
-                <a href="tel:6034484400">(603) 448-4400</a> Headrest &nbsp;&middot;&nbsp;
-                Text HOME to <a href="sms:741741">741741</a>
-              </div>
-              <div class="nlp-highlight-block" id="nlp-highlight-block"></div>
-              <div class="nlp-detections" id="nlp-detections"></div>
-              <div class="nlp-apply-row">
-                <button type="button" class="btn-nlp-apply" id="nlp-apply-btn">Apply to concern filters</button>
-                <button type="button" class="btn-nlp-dismiss" id="nlp-dismiss-btn">Dismiss</button>
-                <span class="nlp-apply-note" id="nlp-apply-note"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Section 4: Concerns -->
       <div class="form-section">
         <div class="section-label">Concerns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);font-size:.78rem">(select all that apply)</span></div>
@@ -966,7 +1138,9 @@
         </div>
       </div>
 
-      <div class="search-actions">
+      </div><!-- /filters-body -->
+
+      <div class="search-actions" style="margin-top:1.25rem">
         <button type="submit" class="btn-primary" id="search-btn">Find Providers</button>
         <button type="button" class="btn-secondary" id="reset-btn">Reset</button>
         <div class="submit-pulse" id="submit-pulse">
@@ -1005,10 +1179,18 @@
         <button class="btn-ghost" id="export-btn" style="display:none">Export training data</button>
       </div>
     </div>
+    <div id="nlp-search-notice" class="nlp-search-notice"></div>
     <div id="samhsa-notice"  class="notice notice-green"></div>
     <div id="samhsa-error"   class="notice notice-amber"></div>
     <div id="ml-notice"      class="notice notice-purple"></div>
     <div id="results-list"></div>
+    <div class="review-nudge" id="review-nudge">
+      <div class="review-nudge-text">
+        <strong>Found a provider that looks right?</strong>
+        Come back after your visit and leave a review — it helps others in the Upper Valley find care faster.
+      </div>
+      <a href="reviews.html" class="btn-review-nudge">Leave a review</a>
+    </div>
   </section>
 
   <!-- Training Data Export Panel -->
@@ -2226,16 +2408,51 @@ function getFilters() {
 
 document.getElementById('search-form').addEventListener('submit', async e => {
   e.preventDefault();
+
+  // Auto-run NLP if text is present, apply concerns silently before searching
+  const nlpText = document.getElementById('nlp-input').value.trim();
+  let nlpDetected = [];
+  if (nlpText.length >= 10) {
+    nlpDetected = nlpAnalyse(nlpText);
+    const threshold = 25;
+    const toSelect = nlpDetected.filter(r => r.confidence >= threshold).map(r => r.id);
+    document.querySelectorAll('#concerns-grid .pill').forEach(pill => {
+      const cb = pill.querySelector('input');
+      if (toSelect.includes(cb.value)) { cb.checked = true; pill.classList.add('selected'); }
+    });
+    // Show inline NLP results panel
+    renderNLPResults(nlpText, nlpDetected);
+  }
+
   const filters = getFilters();
   if (filters.zip && !/^\d{5}$/.test(filters.zip)) { alert('Please enter a valid 5-digit zip code.'); return; }
   currentFilters = filters;
-  submitData({ type: 'search', filters });   // ← send inputs to endpoint
+  submitData({ type: 'search', filters });
+
   document.getElementById('loading').classList.add('active');
   document.getElementById('results-section').classList.remove('active');
-  ['samhsa-notice','samhsa-error','ml-notice'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['samhsa-notice','samhsa-error','ml-notice','nlp-search-notice'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  document.getElementById('review-nudge').classList.remove('active');
   document.getElementById('search-btn').disabled = true;
+
   await runSearch(filters);
+
+  // Show NLP detected-concerns notice in results area
+  const noticeEl = document.getElementById('nlp-search-notice');
+  if (nlpDetected.length > 0) {
+    const top = nlpDetected.slice(0, 4);
+    noticeEl.innerHTML = `<strong>AI detected:</strong> ${top.map(r =>
+      `<span style="background:var(--plum-light);color:var(--plum);border-radius:3px;padding:.05em .4em;font-weight:500;font-size:.75rem;margin:0 .15rem">${r.label}</span>`
+    ).join('')}${nlpDetected.length > 4 ? ` <span style="color:var(--text-subtle)">+${nlpDetected.length - 4} more</span>` : ''}
+    &nbsp;<button type="button" onclick="document.getElementById('nlp-results').scrollIntoView({behavior:'smooth'});document.getElementById('search-card').scrollIntoView({behavior:'smooth',block:'start'})" style="background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--plum);text-decoration:underline;font-family:inherit">View analysis</button>`;
+    noticeEl.classList.add('active');
+  }
+
   document.getElementById('search-btn').disabled = false;
+  document.getElementById('review-nudge').classList.add('active');
   document.getElementById('results-section').scrollIntoView({ behavior:'smooth', block:'start' });
 });
 
@@ -2245,8 +2462,11 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     p.classList.remove('selected','selected-green','selected-purple','selected-teal');
     p.querySelector('input').checked = false;
   });
+  document.getElementById('nlp-results').style.display = 'none';
   document.getElementById('results-section').classList.remove('active');
   ['samhsa-notice','samhsa-error','ml-notice'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('nlp-search-notice').classList.remove('active');
+  document.getElementById('review-nudge').classList.remove('active');
   document.getElementById('loading').classList.remove('active');
   currentFilters = {};
 });
@@ -3626,54 +3846,68 @@ function nlpBuildHighlight(rawText, results) {
 
 // ── NLP UI ──
 
+// NLP UI — renderNLPResults exposed globally so submit handler can call it
+let _nlpLastResults = [];
+
+function severityColor(sev) {
+  return sev === 'Significant' ? 'var(--burgundy)' :
+         sev === 'Moderate'    ? 'var(--plum)'    :
+         sev === 'Mild'        ? 'var(--navy)'    : 'var(--text-subtle)';
+}
+
+function renderNLPResults(rawText, results) {
+  _nlpLastResults = results;
+  const resultsBox = document.getElementById('nlp-results');
+  const crisisFound = results.some(r => r.id === 'suicidal_ideation' && r.confidence >= 25);
+  document.getElementById('nlp-crisis-warning').style.display = crisisFound ? 'block' : 'none';
+
+  document.getElementById('nlp-highlight-block').innerHTML =
+    results.length > 0 ? nlpBuildHighlight(rawText, results) : escapeHtml(rawText);
+
+  const wordCount = rawText.trim().split(/\s+/).length;
+  document.getElementById('nlp-char-count').textContent = `${wordCount} words`;
+
+  const detEl = document.getElementById('nlp-detections');
+  if (results.length === 0) {
+    detEl.innerHTML = '<div style="font-size:.82rem;color:var(--text-subtle);padding:.5rem 0">No conditions detected — try writing more about your day-to-day experience.</div>';
+  } else {
+    detEl.innerHTML = results.map(r => {
+      const col = severityColor(r.severity);
+      const conceptsHtml = r.conceptsFired.length
+        ? `<div class="nlp-triggers">Concepts: ${r.conceptsFired.map(c => `<em>${c}</em>`).join(', ')}</div>`
+        : '';
+      const triggersHtml = r.triggers.length
+        ? `<div class="nlp-triggers" style="margin-top:.1rem">Phrases: ${r.triggers.map(t => `"${t}"`).join(', ')}</div>`
+        : '';
+      const sevBadge = `<span style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-left:.5rem;white-space:nowrap">${r.severity}</span>`;
+      return `
+        <div style="margin-bottom:.55rem">
+          <div class="nlp-detection-row">
+            <span class="nlp-det-label">${r.label}${sevBadge}</span>
+            <div class="nlp-bar-wrap">
+              <div class="nlp-bar" style="width:${r.confidence}%;background:${col}"></div>
+            </div>
+            <span class="nlp-pct">${r.confidence}%</span>
+          </div>
+          ${conceptsHtml}
+          ${triggersHtml}
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('nlp-apply-note').textContent = '';
+  resultsBox.style.display = 'block';
+}
+
 (function initNLP() {
-  const toggle     = document.getElementById('nlp-toggle');
-  const body       = document.getElementById('nlp-panel-body');
-  const chevron    = document.getElementById('nlp-chevron');
-  const analyzeBtn = document.getElementById('nlp-analyze-btn');
   const resultsBox = document.getElementById('nlp-results');
   const applyBtn   = document.getElementById('nlp-apply-btn');
   const dismissBtn = document.getElementById('nlp-dismiss-btn');
 
-  let lastResults = [];
-
-  function togglePanel() {
-    const open = body.classList.toggle('open');
-    chevron.style.transform = open ? 'rotate(180deg)' : '';
-    toggle.setAttribute('aria-expanded', open);
-    if (open) document.getElementById('nlp-input').focus();
-  }
-  toggle.addEventListener('click', togglePanel);
-  toggle.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePanel(); }
-  });
-
-  analyzeBtn.addEventListener('click', () => {
-    const text = document.getElementById('nlp-input').value.trim();
-    if (text.length < 10) {
-      document.getElementById('nlp-input').style.borderColor = 'var(--burgundy)';
-      return;
-    }
-    document.getElementById('nlp-input').style.borderColor = '';
-    analyzeBtn.disabled = true;
-    analyzeBtn.textContent = 'Analysing…';
-    setTimeout(() => {
-      lastResults = nlpAnalyse(text);
-      renderNLPResults(text, lastResults);
-      analyzeBtn.disabled = false;
-      analyzeBtn.textContent = 'Analyze';
-    }, 60);
-  });
-
-  document.getElementById('nlp-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey && document.getElementById('nlp-input').value.length < 200) {
-      e.preventDefault(); analyzeBtn.click();
-    }
-  });
-
+  // Apply to concern pills
   applyBtn.addEventListener('click', () => {
     const threshold = 25;
-    const toSelect = lastResults.filter(r => r.confidence >= threshold).map(r => r.id);
+    const toSelect = _nlpLastResults.filter(r => r.confidence >= threshold).map(r => r.id);
     let count = 0;
     document.querySelectorAll('#concerns-grid .pill').forEach(pill => {
       const cb = pill.querySelector('input');
@@ -3681,62 +3915,33 @@ function nlpBuildHighlight(rawText, results) {
     });
     document.getElementById('nlp-apply-note').textContent =
       count ? `${count} concern${count > 1 ? 's' : ''} applied.` : 'No matching concerns.';
+    // Open the filters section so user can see the applied pills
+    const filtersBody = document.getElementById('filters-body');
+    if (!filtersBody.classList.contains('open')) {
+      document.getElementById('filters-toggle').click();
+    }
     document.getElementById('concerns-grid').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
   dismissBtn.addEventListener('click', () => {
     resultsBox.style.display = 'none';
-    lastResults = [];
+    _nlpLastResults = [];
   });
 
-  function severityColor(sev) {
-    return sev === 'Significant' ? 'var(--burgundy)' :
-           sev === 'Moderate'    ? 'var(--plum)'    :
-           sev === 'Mild'        ? 'var(--navy)'    : 'var(--text-subtle)';
-  }
-
-  function renderNLPResults(rawText, results) {
-    const crisisFound = results.some(r => r.id === 'suicidal_ideation' && r.confidence >= 25);
-    document.getElementById('nlp-crisis-warning').style.display = crisisFound ? 'block' : 'none';
-
-    document.getElementById('nlp-highlight-block').innerHTML =
-      results.length > 0 ? nlpBuildHighlight(rawText, results) : escapeHtml(rawText);
-
-    const wordCount = rawText.trim().split(/\s+/).length;
-    document.getElementById('nlp-char-count').textContent = `${wordCount} words`;
-
-    const detEl = document.getElementById('nlp-detections');
-    if (results.length === 0) {
-      detEl.innerHTML = '<div style="font-size:.82rem;color:var(--text-subtle);padding:.5rem 0">No conditions detected — try writing more about your day-to-day experience.</div>';
-    } else {
-      detEl.innerHTML = results.map(r => {
-        const col = severityColor(r.severity);
-        const conceptsHtml = r.conceptsFired.length
-          ? `<div class="nlp-triggers">Concepts: ${r.conceptsFired.map(c => `<em>${c}</em>`).join(', ')}</div>`
-          : '';
-        const triggersHtml = r.triggers.length
-          ? `<div class="nlp-triggers" style="margin-top:.1rem">Phrases: ${r.triggers.map(t => `"${t}"`).join(', ')}</div>`
-          : '';
-        const sevBadge = `<span style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-left:.5rem;white-space:nowrap">${r.severity}</span>`;
-        return `
-          <div style="margin-bottom:.55rem">
-            <div class="nlp-detection-row">
-              <span class="nlp-det-label">${r.label}${sevBadge}</span>
-              <div class="nlp-bar-wrap">
-                <div class="nlp-bar" style="width:${r.confidence}%;background:${col}"></div>
-              </div>
-              <span class="nlp-pct">${r.confidence}%</span>
-            </div>
-            ${conceptsHtml}
-            ${triggersHtml}
-          </div>`;
-      }).join('');
+  // Live analysis as user types (debounced)
+  let debounceTimer;
+  document.getElementById('nlp-input').addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const text = document.getElementById('nlp-input').value.trim();
+    if (text.length < 20) {
+      resultsBox.style.display = 'none';
+      return;
     }
-
-    document.getElementById('nlp-apply-note').textContent = '';
-    resultsBox.style.display = 'block';
-    resultsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
+    debounceTimer = setTimeout(() => {
+      const results = nlpAnalyse(text);
+      renderNLPResults(text, results);
+    }, 500);
+  });
 })();
 
 // ── Init ──
@@ -3745,6 +3950,30 @@ buildPills('modalities-grid',   MODALITIES_LIST,  'selected-green');
 buildPills('cultural-grid',     CULTURAL_LIST,    'selected-purple');
 buildPills('accessibility-grid',ACCESSIBILITY_LIST,'selected-teal');
 loadMLModel();
+
+// ── Filters toggle ──
+(function initFiltersToggle() {
+  const row     = document.getElementById('filters-toggle');
+  const body    = document.getElementById('filters-body');
+  const chevron = document.getElementById('filters-chevron');
+  const hint    = document.getElementById('filters-hint');
+
+  function toggle() {
+    const open = body.classList.toggle('open');
+    row.classList.toggle('open', open);
+    chevron.style.transform = open ? 'rotate(180deg)' : '';
+    row.setAttribute('aria-expanded', open);
+    hint.textContent = open ? 'collapse' : 'zip, insurance, age, concerns\u2026';
+  }
+
+  row.addEventListener('click', toggle);
+  row.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+
+  // If any filter value was previously set (e.g. after reset), auto-open
+  // (no-op on first load — filters start collapsed)
+})();
 
 // Privacy detail toggle
 document.getElementById('privacy-toggle').addEventListener('click', e => {
