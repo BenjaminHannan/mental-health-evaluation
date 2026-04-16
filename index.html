@@ -659,8 +659,12 @@
       font-size: .8rem;
       font-weight: 600;
       color: var(--text);
-      width: 160px;
+      width: 200px;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .2rem;
     }
     .nlp-bar-wrap {
       flex: 1;
@@ -687,7 +691,7 @@
       font-size: .7rem;
       color: var(--text-subtle);
       margin-top: .15rem;
-      padding-left: 160px;
+      padding-left: 200px;
       line-height: 1.4;
     }
 
@@ -2699,119 +2703,933 @@ const NLP_SYMPTOMS = {
   },
 };
 
-// ── NLP Engine ──
+// ═══════════════════════════════════════════════════
+//  NLP ENGINE v2  —  Concept-based clinical NLP
+//
+//  Architecture (7 layers):
+//  1. Normalise  — lowercase, unicode apostrophes, strip punct
+//  2. Sentence split + sentence metadata:
+//       firstPerson | isQuestion | chronicContext | diagnosedContext
+//  3. Context multipliers per sentence:
+//       intensity (very/severely/always) → ×1.55
+//       hedge (sometimes/a bit/maybe)    → ×0.65
+//       negation (not/never/can't/…)     → ×0   (per phrase window)
+//       thirdPerson (he/she/my friend)   → ×0.35
+//       question (do i have/could this)  → ×0.65
+//       diagnosed (told me/diagnosed)    → ×1.85
+//       chronic (for years/months)       → ×1.30
+//  4. Concept-level matching — each condition has named DSM-aligned
+//     concept clusters; each concept fires once per sentence max,
+//     preventing phrase-count inflation within a single concept.
+//  5. Score aggregation:
+//       raw = Σ (concept_weight × context_mult)
+//       coverage = unique_concepts_fired / total_concepts
+//       combined = 0.6×(raw/cap) + 0.4×coverage  → 0–1
+//  6. Co-occurrence boosting — clinically correlated condition pairs
+//     lift each other by up to +15 points.
+//  7. Severity classification: Possible / Mild / Moderate / Significant
+// ═══════════════════════════════════════════════════
 
-const NEGATION_WORDS = ['not','no',"don't","doesn't","didn't","never","without","barely","hardly",
-                        "can't","cannot","won't","wouldn't","isn't","aren't","wasn't","weren't",
-                        "haven't","hadn't","shouldn't","nothing","neither","nor","rarely"];
+// ── Concept Database ──
+// Each condition → array of concept clusters.
+// Each cluster has: name (for display), weight, phrases[].
+// Only one phrase per cluster fires per sentence.
+
+const NLP_CONCEPTS = {
+
+  depression: {
+    label: 'Depression',
+    concepts: [
+      { name: 'depressed mood', w: 1.6, phrases: [
+        'depressed','clinical depression','major depression','feeling depressed',
+        'really depressed','so depressed','deeply depressed','chronically depressed',
+        'severe depression','feel depressed','been depressed',
+      ]},
+      { name: 'anhedonia', w: 1.6, phrases: [
+        'lost interest','lost all interest','no longer enjoy','don\'t enjoy anything',
+        'nothing brings me joy','can\'t enjoy','lost pleasure','no pleasure',
+        'things i used to love','stopped enjoying','don\'t care about anything',
+        'numb to things','nothing feels good','lost my hobbies',
+      ]},
+      { name: 'hopelessness', w: 1.4, phrases: [
+        'hopeless','hopelessness','no hope','nothing to look forward to',
+        'nothing will get better','never get better','no future','pointless',
+        'nothing matters','what\'s the point','why bother','no point trying',
+        'giving up','given up','feel defeated','completely defeated',
+      ]},
+      { name: 'worthlessness / guilt', w: 1.3, phrases: [
+        'worthless','feel worthless','feeling worthless','feel like a burden',
+        'burden to everyone','burden on my family','useless','feel useless',
+        'failure','complete failure','hate myself','self-loathing','self loathing',
+        'so much guilt','overwhelming guilt','ashamed of myself','constantly ashamed',
+        'can\'t forgive myself','don\'t deserve help',
+      ]},
+      { name: 'low energy / fatigue', w: 1.1, phrases: [
+        'no energy','exhausted all the time','constantly tired','always tired',
+        'fatigue','chronic fatigue','drained','feel drained','run down',
+        'can\'t get out of bed','too tired to do anything','wiped out',
+        'no motivation','lack of motivation','unmotivated','no drive',
+      ]},
+      { name: 'sleep disturbance', w: 0.9, phrases: [
+        'sleeping too much','oversleeping','can\'t get out of bed','sleep all day',
+        'sleep all the time','sleeping 12 hours','sleeping 14 hours',
+        'too much sleep','hypersomnia',
+      ]},
+      { name: 'appetite change', w: 0.9, phrases: [
+        'not eating','no appetite','lost my appetite','don\'t want to eat',
+        'forgetting to eat','eating too much','stress eating','binge eating to cope',
+        'no interest in food','food doesn\'t taste good','gained weight',
+        'lost weight','significant weight change',
+      ]},
+      { name: 'concentration', w: 0.9, phrases: [
+        'can\'t concentrate','trouble concentrating','hard to focus','can\'t think straight',
+        'brain fog','foggy','mentally foggy','thoughts feel slow','can\'t make decisions',
+        'indecisive','can\'t read','can\'t watch tv','can\'t follow conversations',
+      ]},
+      { name: 'social withdrawal', w: 1.0, phrases: [
+        'isolating myself','isolating','withdrawing from','withdrawn','pulling away',
+        'cut myself off','avoiding everyone','don\'t want to see anyone',
+        'cancelled plans','stopped going out','hiding from people','hermit',
+        'pushing people away','don\'t want to be around people',
+      ]},
+      { name: 'sad/low mood', w: 0.8, phrases: [
+        'sad all the time','constantly sad','always sad','deep sadness','feeling sad',
+        'low mood','down all the time','persistent sadness','heavy sadness',
+        'crying a lot','cry every day','tears for no reason','sudden crying',
+        'dark cloud','dark place','dark hole','black hole','pit',
+        'feel empty','feeling empty','empty inside','numb inside',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'depression','depressive','depressed','sad','sadness','melancholy',
+        'feeling down','feel down','blue','in a slump',
+      ]},
+    ],
+  },
+
+  anxiety: {
+    label: 'Anxiety',
+    concepts: [
+      { name: 'persistent worry', w: 1.5, phrases: [
+        'constant worry','constantly worrying','can\'t stop worrying','always worried',
+        'excessive worry','worry about everything','worry nonstop','obsessive worrying',
+        'chronic anxiety','generalized anxiety','gad','all i do is worry',
+        'my mind races with worry','can\'t turn off my brain',
+      ]},
+      { name: 'panic / physical symptoms', w: 1.5, phrases: [
+        'panic attack','panic attacks','having a panic attack','full panic',
+        'heart racing','heart pounding','heart beating fast','chest tightness',
+        'tight chest','chest pain','can\'t breathe','shortness of breath',
+        'hard to breathe','hyperventilating','dizzy from anxiety','shaking',
+        'trembling','tremor','sweating from nerves','feel like i\'m dying',
+        'feel like i\'m going to die','feel like fainting',
+      ]},
+      { name: 'social / performance anxiety', w: 1.3, phrases: [
+        'social anxiety','fear of judgment','afraid of embarrassing myself',
+        'terrified of people','avoid social situations','scared of crowds',
+        'public speaking fear','performance anxiety','afraid to leave the house',
+        'agoraphobia','agoraphobic','can\'t be around people','judged by others',
+      ]},
+      { name: 'racing thoughts', w: 1.1, phrases: [
+        'racing thoughts','thoughts won\'t stop','mind racing','thoughts racing',
+        'overthinking everything','can\'t turn off my thoughts',
+        'mind won\'t stop','brain won\'t stop','spiral of thoughts','mental spiral',
+        'spiraling','overthink','ruminating','rumination',
+      ]},
+      { name: 'avoidance', w: 1.0, phrases: [
+        'avoiding','avoidance','avoid going out','avoid people','avoid situations',
+        'too scared to','too anxious to','can\'t bring myself to',
+        'procrastinate because of anxiety','freeze up','freeze',
+      ]},
+      { name: 'sleep / physical tension', w: 0.9, phrases: [
+        'lying awake','can\'t sleep because of thoughts','mind too active to sleep',
+        'anxious at night','always on edge','on edge','tense','muscle tension',
+        'jaw clenching','grinding teeth','bruxism','stomach in knots',
+        'butterflies all the time','pit in my stomach','nauseous from anxiety',
+      ]},
+      { name: 'specific fears / phobias', w: 1.0, phrases: [
+        'phobia','phobias','specific phobia','irrational fear','fear of flying',
+        'fear of spiders','fear of heights','claustrophobia','emetophobia',
+        'health anxiety','hypochondria','hypochondriac','health ocd',
+        'always think something is wrong with me','convinced i\'m sick',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'anxiety','anxious','nervous','worried','worrying','dread','scared',
+        'fear','fearful','apprehensive','uneasy','restless',
+      ]},
+    ],
+  },
+
+  trauma: {
+    label: 'Trauma / PTSD',
+    concepts: [
+      { name: 'flashbacks / intrusions', w: 1.7, phrases: [
+        'flashback','flashbacks','reliving','reliving the event','reliving what happened',
+        'intrusive thoughts','intrusive memories','intrusive images',
+        'can\'t stop seeing it','it plays on repeat','memories keep coming back',
+        'vivid memories of','unwanted memories','involuntary memories',
+      ]},
+      { name: 'nightmares', w: 1.4, phrases: [
+        'nightmare','nightmares','recurring nightmare','waking up screaming',
+        'night terrors','trauma dreams','dream about it','bad dreams about',
+        'can\'t sleep because of nightmares',
+      ]},
+      { name: 'hypervigilance / startle', w: 1.3, phrases: [
+        'hypervigilant','hypervigilance','always on guard','on high alert',
+        'constantly scanning','jump at sounds','easily startled','startle easily',
+        'flinch','feel unsafe everywhere','can\'t relax in public',
+        'feel like something bad will happen','waiting for something bad',
+      ]},
+      { name: 'avoidance of reminders', w: 1.2, phrases: [
+        'avoid reminders','can\'t watch certain things','triggers me','triggered',
+        'certain places trigger','certain smells trigger','avoid talking about it',
+        'can\'t think about it','shuts me down','brings it all back',
+        'certain sounds trigger','anniversaries are hard',
+      ]},
+      { name: 'traumatic event', w: 1.5, phrases: [
+        'ptsd','post-traumatic stress','post traumatic stress','complex ptsd','cptsd',
+        'abuse','physical abuse','emotional abuse','emotional neglect',
+        'sexual abuse','childhood abuse','abused as a child','abusive home',
+        'assaulted','sexual assault','rape','domestic violence','dv',
+        'witnessed violence','war trauma','combat trauma','accident trauma',
+        'car accident','traumatic event','terrible thing happened to me',
+        'something bad happened to me','went through something terrible',
+      ]},
+      { name: 'emotional numbing / detachment', w: 1.1, phrases: [
+        'feel detached','feel disconnected','dissociate','dissociation','dissociating',
+        'derealization','depersonalization','not in my body','watching myself',
+        'feel numb to everything','shut down emotionally','can\'t feel anything',
+        'emotionally numb','feel like a robot','going through the motions',
+      ]},
+      { name: 'general mention', w: 0.6, phrases: [
+        'trauma','traumatic','traumatized','bad experience','difficult past',
+        'difficult childhood','rough childhood','hard past','survived',
+      ]},
+    ],
+  },
+
+  bipolar: {
+    label: 'Bipolar Disorder',
+    concepts: [
+      { name: 'manic episodes', w: 1.7, phrases: [
+        'manic','mania','manic episode','hypomanic','hypomania','manic phase',
+        'felt on top of the world','grandiose','invincible','euphoric for days',
+        'not sleeping but full of energy','racing thoughts and energy',
+        'impulsive decisions','risky behavior during high','spend all my money',
+        'talking very fast','thoughts going too fast',
+      ]},
+      { name: 'mood cycling', w: 1.6, phrases: [
+        'mood swings','extreme mood swings','rapid cycling','emotional highs and lows',
+        'highs and lows','high and low','cycling moods','mood cycles',
+        'one week fine next week terrible','can\'t predict my mood',
+        'my moods change drastically','mood shifts quickly',
+      ]},
+      { name: 'depressive phase', w: 1.1, phrases: [
+        'crash after a high','come crashing down','after the high comes the low',
+        'depressive episodes','depressive phase','low periods','depressed phases',
+        'switching from high to low','going from manic to depressed',
+      ]},
+      { name: 'sleep changes', w: 0.9, phrases: [
+        'not sleeping for days','barely sleeping','only sleep 2 hours','don\'t need sleep',
+        'sleep a lot then barely sleep','sleep disturbance with mood',
+      ]},
+      { name: 'general mention', w: 0.6, phrases: [
+        'bipolar','bipolar disorder','manic depressive','type 1 bipolar','type 2 bipolar',
+        'cyclothymia',
+      ]},
+    ],
+  },
+
+  schizophrenia: {
+    label: 'Psychosis',
+    concepts: [
+      { name: 'hallucinations', w: 1.9, phrases: [
+        'hearing voices','hear voices','voices in my head','voices telling me',
+        'the voices say','auditory hallucinations','seeing things','visual hallucinations',
+        'hallucination','hallucinations','perceive things others don\'t',
+        'see shadows','see figures','smell things others don\'t',
+      ]},
+      { name: 'delusions / paranoia', w: 1.8, phrases: [
+        'paranoid','paranoia','people are out to get me','being followed',
+        'being watched','surveillance','government watching me','believe i\'m special',
+        'chosen one','special mission','thought insertion','thoughts being broadcast',
+        'thoughts aren\'t my own','mind control','conspiring against me',
+        'delusion','delusions','delusional',
+      ]},
+      { name: 'disorganized thinking', w: 1.5, phrases: [
+        'thoughts don\'t make sense','can\'t organize my thoughts','confused thinking',
+        'losing touch with reality','not sure what\'s real','reality slipping',
+        'losing my mind','going crazy','going insane',
+      ]},
+      { name: 'negative symptoms', w: 1.1, phrases: [
+        'flat affect','no emotions','can\'t express emotions','social withdrawal',
+        'stopped speaking','barely speak','stopped caring for myself',
+        'neglecting hygiene','not showering',
+      ]},
+      { name: 'general mention', w: 0.6, phrases: [
+        'psychosis','psychotic','schizophrenia','schizoaffective','first episode psychosis',
+      ]},
+    ],
+  },
+
+  adhd: {
+    label: 'ADHD',
+    concepts: [
+      { name: 'inattention', w: 1.5, phrases: [
+        'can\'t focus','difficulty focusing','trouble focusing','hard to concentrate',
+        'can\'t concentrate','concentration problems','easily distracted',
+        'attention keeps drifting','lose track of what i\'m doing',
+        'mind wanders','start things and don\'t finish','leave tasks unfinished',
+        'lose interest halfway through','can\'t sustain attention','inattentive',
+      ]},
+      { name: 'hyperactivity / restlessness', w: 1.4, phrases: [
+        'can\'t sit still','always moving','fidgety','fidget','hyperactive','restless',
+        'need to keep moving','can\'t stay in one place','always fidgeting',
+        'tapping','bouncing my leg','need stimulation',
+      ]},
+      { name: 'impulsivity', w: 1.3, phrases: [
+        'impulsive','impulsivity','say things without thinking','blurt out',
+        'can\'t control impulses','act without thinking','interrupt people',
+        'make decisions too fast','regret decisions','do things on a whim',
+      ]},
+      { name: 'executive function', w: 1.2, phrases: [
+        'can\'t organize','disorganized','always late','can\'t manage time',
+        'time management problems','forget things','always forgetting',
+        'lose things constantly','miss deadlines','procrastinate everything',
+        'task paralysis','don\'t know where to start','overwhelmed by tasks',
+        'can\'t plan ahead','executive dysfunction',
+      ]},
+      { name: 'emotional dysregulation', w: 1.0, phrases: [
+        'emotional sensitivity','rejection sensitive','rejection sensitivity','rsd',
+        'feelings too intense','small things upset me','reject sensitive',
+        'mood changes quickly','emotional flooding',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'adhd','add','attention deficit','attention deficit disorder',
+        'hyperactivity disorder','neurodivergent','neurodivergence',
+      ]},
+    ],
+  },
+
+  ocd: {
+    label: 'OCD',
+    concepts: [
+      { name: 'obsessions', w: 1.6, phrases: [
+        'obsessive thoughts','unwanted thoughts','intrusive ocd thoughts',
+        'can\'t stop the thoughts','thoughts i don\'t want','disturbing thoughts',
+        'repulsive thoughts','horrifying thoughts','thoughts about harming',
+        'don\'t want to act on them','ego-dystonic','not who i am',
+        'thought-action fusion','magical thinking',
+      ]},
+      { name: 'compulsions / rituals', w: 1.7, phrases: [
+        'compulsion','compulsions','compulsive','ritual','rituals','checking',
+        'check over and over','check things repeatedly','count things',
+        'counting compulsion','arrange things','need symmetry','touch things',
+        'repeat actions','repeat words in my head','mental compulsion',
+        'can\'t leave without checking','go back to check','have to check',
+      ]},
+      { name: 'contamination', w: 1.4, phrases: [
+        'contamination ocd','fear of germs','germ phobia','afraid of contamination',
+        'wash hands too much','excessive hand washing','can\'t stop cleaning',
+        'clean obsessively','fear of illness spreading','afraid of dirt',
+        'avoid touching things','wear gloves to touch things',
+      ]},
+      { name: 'harm ocd', w: 1.5, phrases: [
+        'harm ocd','afraid i\'ll hurt someone','intrusive thoughts of harming',
+        'violent thoughts i don\'t want','what if i hurt','scared of my thoughts',
+        'pedophilia ocd','pocd','scrupulosity',
+      ]},
+      { name: 'uncertainty / reassurance', w: 1.0, phrases: [
+        'need reassurance','constantly need reassurance','can\'t tolerate uncertainty',
+        'fear of the unknown','need certainty','have to know for sure',
+        'ask same questions repeatedly','google symptoms constantly',
+        'can\'t make peace with not knowing','doubt everything',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'ocd','obsessive compulsive','obsessive-compulsive',
+        'obsessive compulsive disorder',
+      ]},
+    ],
+  },
+
+  eating_disorder: {
+    label: 'Eating Disorder',
+    concepts: [
+      { name: 'restrictive eating', w: 1.7, phrases: [
+        'restricting food','restricting eating','restrict what i eat','barely eating',
+        'afraid to eat','fear of food','food rules','forbidden foods',
+        'anorexia','anorexic','not eating enough','starvation','self-starvation',
+        'skipping meals intentionally','extreme calorie restriction',
+      ]},
+      { name: 'binge-purge cycle', w: 1.7, phrases: [
+        'binge eating','binge and purge','bulimia','bulimic','purging','purge after eating',
+        'make myself sick after eating','compensate for eating','laxatives for food',
+        'over-exercising after eating','undo what i ate',
+      ]},
+      { name: 'body image', w: 1.4, phrases: [
+        'body image','hate my body','body dysmorphia','body dysmorphic',
+        'see myself as fat','think i\'m fat','obsessed with my weight','weigh myself constantly',
+        'obsessed with how i look','my body is disgusting','feel disgusting after eating',
+        'mirror obsession','can\'t look in the mirror','look wrong',
+      ]},
+      { name: 'food obsession', w: 1.3, phrases: [
+        'obsessed with food','count calories obsessively','counting every calorie',
+        'fear of calories','food is terrifying','food thoughts all day',
+        'can\'t stop thinking about food','food rules controlling me',
+        'safe foods','fear foods','eating around fear foods',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'eating disorder','disordered eating','ed','orthorexia','arfid',
+        'selective eating disorder','avoidant restrictive food',
+      ]},
+    ],
+  },
+
+  substance_use: {
+    label: 'Substance Use',
+    concepts: [
+      { name: 'alcohol dependence', w: 1.7, phrases: [
+        'drinking too much','can\'t stop drinking','drink every day','alcohol problem',
+        'alcoholism','alcoholic','dependent on alcohol','alcohol dependence',
+        'alcohol abuse','binge drinking','drink to cope','drink to numb',
+        'hiding how much i drink','drink in secret','blackout drinking',
+        'drink first thing in the morning','need a drink to function',
+      ]},
+      { name: 'drug use / dependence', w: 1.7, phrases: [
+        'drug addiction','drug use','using drugs','drug dependent','drug abuse',
+        'opioid addiction','heroin','fentanyl','cocaine','methamphetamine','meth',
+        'crystal meth','crack','marijuana dependency','cannabis use disorder',
+        'pills addiction','pain pill addiction','xanax addiction','benzo addiction',
+        'stimulant use','can\'t stop using','using to cope',
+      ]},
+      { name: 'loss of control', w: 1.4, phrases: [
+        'can\'t stop','tried to quit','tried to cut back','can\'t cut back',
+        'want to stop but can\'t','keep using even though','using more than i want',
+        'using more than planned','lost control of use','powerless over',
+      ]},
+      { name: 'consequences', w: 1.2, phrases: [
+        'lost my job because of drinking','ruined relationships','arrested for',
+        'dui','blackout','woke up not knowing','health problems from use',
+        'financial problems from','can\'t afford','spending on drugs',
+      ]},
+      { name: 'withdrawal / cravings', w: 1.3, phrases: [
+        'withdrawal','withdrawing','withdrawal symptoms','cravings','intense cravings',
+        'urge to use','relapse','relapsed','fear of withdrawal',
+        'need it to feel normal','need it to function',
+      ]},
+      { name: 'recovery context', w: 0.7, phrases: [
+        'in recovery','sobriety','sober','clean and sober','days sober',
+        'na meeting','aa meeting','twelve step','recovery program',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'substance use','substance abuse','addiction','addicted','dependency',
+        'substance disorder','dual diagnosis',
+      ]},
+    ],
+  },
+
+  suicidal_ideation: {
+    label: 'Suicidal Thoughts',
+    concepts: [
+      { name: 'explicit ideation', w: 2.0, phrases: [
+        'want to die','wanting to die','wish i was dead','wish i were dead',
+        'suicidal','suicidal thoughts','suicidal ideation','thinking about suicide',
+        'suicide','kill myself','end my life','ending my life','take my life',
+        'no longer want to be alive','don\'t want to exist anymore',
+        'don\'t want to be here anymore','not want to be here',
+        'think about killing myself','thoughts of suicide',
+      ]},
+      { name: 'plan / intent', w: 2.0, phrases: [
+        'have a plan','planned how to','planning to end','made a plan to die',
+        'goodbye letters','saying goodbye','giving away possessions',
+        'researching methods','stockpiling pills','have the means',
+      ]},
+      { name: 'passive death wish', w: 1.6, phrases: [
+        'better off dead','better off without me','world is better without me',
+        'no one would miss me','no point in being alive','life is not worth living',
+        'no reason to be alive','want everything to stop','wish i could disappear',
+        'wish i could go to sleep and not wake up','don\'t want to wake up',
+      ]},
+      { name: 'self-harm', w: 1.5, phrases: [
+        'self harm','self-harm','self harming','cutting myself','cut myself',
+        'hurt myself','hurting myself','burn myself','scratch myself',
+        'self injury','self-injury','non-suicidal self-injury','nssi',
+        'harming myself','inflict pain on myself',
+      ]},
+      { name: 'general mention', w: 0.7, phrases: [
+        'dark thoughts','very dark place','darkest place','thoughts i can\'t share',
+        'thoughts that scare me','intrusive thoughts about death',
+      ]},
+    ],
+  },
+
+  grief: {
+    label: 'Grief & Loss',
+    concepts: [
+      { name: 'bereavement', w: 1.7, phrases: [
+        'grief','grieving','bereavement','bereaved','someone died','someone passed away',
+        'lost someone','lost my mother','lost my father','lost my child','lost my partner',
+        'lost my sibling','death of','death of my','died recently','passed last year',
+        'passed away last','mourning','mourning the loss',
+      ]},
+      { name: 'complicated grief', w: 1.5, phrases: [
+        'complicated grief','prolonged grief','can\'t accept the loss','haven\'t accepted',
+        'life is meaningless without','can\'t imagine life without','won\'t get over it',
+        'refuse to accept they\'re gone','still talk to them','pretend they\'re still here',
+        'can\'t move forward','stuck in grief','grief won\'t go away',
+      ]},
+      { name: 'loss / missing', w: 1.0, phrases: [
+        'miss them so much','miss her so much','miss him so much','terribly missing',
+        'miss my','every day i miss','constant ache of missing','the emptiness since',
+        'the hole they left','nothing will replace them','remind me of them',
+      ]},
+      { name: 'disenfranchised grief', w: 1.2, phrases: [
+        'pet died','lost my pet','lost my dog','lost my cat','miscarriage',
+        'pregnancy loss','stillbirth','divorce grief','grief from breakup',
+        'end of friendship','estrangement','lost a relationship',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'loss','grief','grieving','losing someone','bereavement',
+      ]},
+    ],
+  },
+
+  family: {
+    label: 'Family & Relationships',
+    concepts: [
+      { name: 'relationship conflict', w: 1.4, phrases: [
+        'relationship problems','marriage problems','marriage difficulties','couple problems',
+        'constant fighting','fighting with my partner','conflict with','ongoing conflict',
+        'toxic relationship','unhealthy relationship','bad relationship',
+        'communication problems','trust issues','can\'t communicate',
+      ]},
+      { name: 'abuse / control', w: 1.7, phrases: [
+        'abusive relationship','emotional abuse','verbal abuse','physical abuse',
+        'controlling partner','controlling relationship','manipulative partner',
+        'coercive control','gaslighting','gaslit','narcissistic abuse',
+        'domestic violence','domestic abuse','fear my partner','walking on eggshells',
+      ]},
+      { name: 'family of origin', w: 1.2, phrases: [
+        'family conflict','family drama','toxic family','dysfunctional family',
+        'abusive parents','childhood neglect','emotional neglect growing up',
+        'grew up in chaos','family never supported me','family dismisses me',
+        'estranged from family','no contact','low contact','cut off my family',
+      ]},
+      { name: 'separation / divorce', w: 1.3, phrases: [
+        'divorce','divorcing','going through a divorce','separation','separating',
+        'breakup','broke up','end of a relationship','custody battle','co-parenting',
+        'custody issues','co-parenting conflict','losing access to my kids',
+      ]},
+      { name: 'parenting stress', w: 1.1, phrases: [
+        'parenting stress','struggling as a parent','overwhelmed with parenting',
+        'my child\'s mental health','worried about my child','single parent',
+        'single parenting alone','postpartum','postpartum depression','postnatal depression',
+        'new baby is so hard',
+      ]},
+      { name: 'codependency', w: 1.1, phrases: [
+        'codependent','codependency','lose myself in relationships','always put others first',
+        'can\'t say no','boundaries problem','no boundaries','don\'t know my own needs',
+        'sacrificed everything','people pleasing','people pleaser',
+      ]},
+      { name: 'general mention', w: 0.4, phrases: [
+        'relationship','relationships','family','partner','marriage','divorce','breakup',
+      ]},
+    ],
+  },
+
+  lgbtq: {
+    label: 'LGBTQ+ Issues',
+    concepts: [
+      { name: 'identity exploration', w: 1.4, phrases: [
+        'figuring out my sexuality','questioning my sexuality','confused about my gender',
+        'gender identity questions','sexuality confusion','not sure if i\'m gay',
+        'not sure of my identity','exploring who i am','coming to terms with being',
+        'realizing i might be','coming out to myself',
+      ]},
+      { name: 'coming out stress', w: 1.5, phrases: [
+        'coming out','afraid to come out','not out yet','scared to come out',
+        'come out to my family','came out and it went badly','family rejected me',
+        'rejected for being gay','rejected for being trans','family doesn\'t accept',
+        'parents don\'t accept','kicked out for being','thrown out for being',
+      ]},
+      { name: 'gender dysphoria', w: 1.6, phrases: [
+        'gender dysphoria','body dysphoria','hate my biological sex','wrong body',
+        'born in the wrong body','transgender','trans identity','non-binary',
+        'nonbinary identity','gender non-conforming','genderqueer',
+        'dysphoria about my body','dysphoric','transitioning',
+      ]},
+      { name: 'discrimination / safety', w: 1.3, phrases: [
+        'homophobia','homophobic attacks','transphobia','transphobic','bullied for being gay',
+        'harassed for being trans','lgbtq discrimination','feel unsafe as gay person',
+        'denied care because gay','family uses slurs','hate crimes','outed without consent',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'lgbtq','gay','lesbian','bisexual','trans','transgender','queer','nonbinary',
+        'non-binary','sexuality','gender identity','two-spirit',
+      ]},
+    ],
+  },
+
+  veteran: {
+    label: 'Veteran & Military',
+    concepts: [
+      { name: 'combat / deployment trauma', w: 1.7, phrases: [
+        'combat','combat trauma','combat ptsd','deployment','deployed overseas',
+        'war zone','seeing people die','killed someone in war','survivor guilt',
+        'watched my unit','my friend died in combat','ied','mortar','gunfire',
+        'military sexual trauma','mst','assaulted in service',
+      ]},
+      { name: 'transition difficulties', w: 1.3, phrases: [
+        'adjusting to civilian life','civilian life is hard','miss the military',
+        'no identity after service','don\'t know who i am without military',
+        'feel like i don\'t belong','can\'t relate to civilians',
+        'lost my purpose after discharge','medically discharged','ptsd from military',
+      ]},
+      { name: 'physical injuries', w: 0.9, phrases: [
+        'traumatic brain injury','tbi','injured in service','lost a limb','amputee',
+        'burn injuries','chronic pain from service','disabled veteran',
+      ]},
+      { name: 'general mention', w: 0.6, phrases: [
+        'veteran','military','army','navy','marine corps','air force','coast guard',
+        'national guard','reserves','service member','active duty','discharged',
+        'soldier','sailor','airman',
+      ]},
+    ],
+  },
+
+  chronic_illness: {
+    label: 'Chronic Illness',
+    concepts: [
+      { name: 'chronic pain', w: 1.5, phrases: [
+        'chronic pain','constant pain','pain every day','pain for years',
+        'pain doesn\'t go away','persistent pain','unmanaged pain','severe pain',
+        'fibromyalgia','endometriosis','chronic migraine','migraines every week',
+        'back pain all the time','joint pain','arthritis pain',
+      ]},
+      { name: 'medical diagnosis', w: 1.4, phrases: [
+        'chronic illness','chronic condition','long-term illness','living with illness',
+        'cancer diagnosis','cancer survivor','lupus','multiple sclerosis','ms',
+        'crohn\'s disease','inflammatory bowel','autoimmune','autoimmune condition',
+        'heart disease','heart condition','diabetes stress','managing diabetes',
+      ]},
+      { name: 'health anxiety / medical trauma', w: 1.3, phrases: [
+        'health anxiety','medical trauma','medical ptsd','bad hospital experience',
+        'doctors dismissed me','medical gaslighting','misdiagnosed for years',
+        'not believed by doctors','dismissed by doctors',
+      ]},
+      { name: 'disability impact', w: 1.2, phrases: [
+        'can\'t work because of illness','illness prevents me','lost my job to illness',
+        'disabled from illness','housebound','bedbound','limited mobility',
+        'can\'t do what i used to','illness changed my life',
+      ]},
+      { name: 'general mention', w: 0.5, phrases: [
+        'chronic illness','chronic condition','terminal illness','rare disease',
+        'physical health affecting mental health','sick all the time',
+      ]},
+    ],
+  },
+
+  crisis: {
+    label: 'Immediate Crisis',
+    concepts: [
+      { name: 'acute crisis', w: 1.8, phrases: [
+        'in crisis','having a crisis','mental health crisis','psychiatric crisis',
+        'breaking down right now','falling apart right now','can\'t cope right now',
+        'need help immediately','need help now','emergency situation',
+        'crisis mode','can\'t handle this moment','at my breaking point',
+      ]},
+      { name: 'overwhelm / desperation', w: 1.3, phrases: [
+        'falling apart','can\'t cope','at my limit','at the end of my rope',
+        'completely overwhelmed','losing control','don\'t know what to do',
+        'desperately need help','reaching out for help','out of options',
+        'can\'t take it anymore','can\'t handle anymore','too much to handle',
+        'everything is too much','under enormous pressure','about to break',
+      ]},
+      { name: 'general mention', w: 0.6, phrases: [
+        'crisis','desperate','urgently need','emergency','can\'t wait',
+        'need support now','right now',
+      ]},
+    ],
+  },
+
+};
+
+// ── Co-occurrence map ──
+// If both conditions are detected, each lifts the other
+const NLP_COOCCURRENCE = [
+  ['depression', 'anxiety',          0.12],
+  ['depression', 'trauma',           0.10],
+  ['depression', 'grief',            0.10],
+  ['depression', 'suicidal_ideation',0.15],
+  ['depression', 'substance_use',    0.10],
+  ['depression', 'chronic_illness',  0.08],
+  ['anxiety',    'trauma',           0.12],
+  ['anxiety',    'ocd',              0.10],
+  ['trauma',     'suicidal_ideation',0.12],
+  ['trauma',     'substance_use',    0.10],
+  ['bipolar',    'depression',       0.12],
+  ['bipolar',    'anxiety',          0.08],
+  ['substance_use','trauma',         0.08],
+  ['adhd',       'depression',       0.08],
+  ['adhd',       'anxiety',          0.08],
+  ['eating_disorder','anxiety',      0.10],
+  ['eating_disorder','depression',   0.10],
+];
+
+// ── Context modifiers ──
+const NLP_INTENSITY_WORDS = [
+  'very','extremely','severely','intensely','deeply','profoundly','constantly',
+  'always','every day','every single day','all the time','nonstop','perpetually',
+  'unbearably','overwhelmingly','cripplingly','completely','totally','utterly',
+  'absolutely','so so','really really','so much','a lot','more and more',
+  'getting worse','worse and worse','at its worst',
+];
+
+const NLP_HEDGE_WORDS = [
+  'sometimes','occasionally','a bit','slightly','a little','sort of','kind of',
+  'maybe','perhaps','possibly','might be','could be','i think i',
+  'i wonder if','used to feel','used to be','not as bad','not that bad',
+  'other people have it worse','less than before',
+];
+
+const NLP_NEGATION_WORDS = [
+  'not','no',"don't","doesn't","didn't","never","without","barely","hardly",
+  "can't","cannot","won't","wouldn't","isn't","aren't","wasn't","weren't",
+  "haven't","hadn't","shouldn't","nothing","neither","nor","rarely","no longer",
+  "not really","not much","not often","not anymore","stopped","used to but",
+  "less and less","getting better at","improving",
+];
+
+const NLP_THIRD_PERSON = [
+  'my friend','my brother','my sister','my mother','my father','my parent',
+  'my spouse','my child','my son','my daughter','someone i know',
+  'a family member','a colleague','asking for a friend',
+  'he feels','she feels','they feel','he is','she is','he was','she was',
+];
+
+const NLP_CHRONIC_MARKERS = [
+  'for years','for months','for a long time','since childhood','my whole life',
+  'years of this','months of this','for as long as i remember','always have been',
+  'chronic','lifelong','long-standing','persistent','ongoing for',
+];
+
+const NLP_DIAGNOSED_MARKERS = [
+  'diagnosed with','been diagnosed','doctor said','told me i have',
+  'therapist said','psychiatrist said','doctor told me','i have been told',
+  'i know i have','officially diagnosed','clinically diagnosed',
+];
+
+// ── Normalisation & tokenisation ──
 
 function nlpNormalise(text) {
-  return text.toLowerCase().replace(/['']/g, "'").replace(/[^a-z0-9\s']/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[''`]/g, "'")
+    .replace(/[^a-z0-9\s']/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-function nlpSentences(text) {
-  return text.split(/[.!?\n]+/).map(s => s.trim()).filter(Boolean);
+function nlpSentences(normText) {
+  // Split on sentence boundaries, preserve moderate length fragments
+  return normText
+    .split(/(?<=[.!?])\s+|[\n\r]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 2);
 }
 
-function nlpHasNegation(sentence, matchStart) {
-  // Check up to 5 words before the match for a negation word
-  const before = sentence.slice(0, matchStart).trim().split(/\s+/).slice(-5);
-  return before.some(w => NEGATION_WORDS.includes(w));
+// ── Sentence-level metadata ──
+
+function nlpSentenceMeta(sentence) {
+  const hasWord = arr => arr.some(w => sentence.includes(w));
+  const firstPersonRe = /\b(i |i've|i'm|i'd|i'll|i was|i am|i have|i had|i've|myself|my )\b/;
+
+  // Intensity: check if any intensity word appears before content words
+  let intensityMult = 1.0;
+  NLP_INTENSITY_WORDS.forEach(w => {
+    if (sentence.includes(w)) intensityMult = Math.max(intensityMult, 1.55);
+  });
+
+  // Hedge: reduce weight
+  let hedgeMult = 1.0;
+  NLP_HEDGE_WORDS.forEach(w => {
+    if (sentence.includes(w)) hedgeMult = Math.min(hedgeMult, 0.65);
+  });
+
+  // Third person: dramatically reduce weight
+  let personMult = firstPersonRe.test(sentence) ? 1.0 : 0.75;
+  if (hasWord(NLP_THIRD_PERSON)) personMult = 0.30;
+
+  // Question: reduce weight ("do i have anxiety?")
+  const isQuestion = /\b(do i have|could i have|might i have|am i|is this|could this be|do you think i)\b/.test(sentence);
+  const questionMult = isQuestion ? 0.60 : 1.0;
+
+  // Chronic context: boost
+  const chronicMult = hasWord(NLP_CHRONIC_MARKERS) ? 1.30 : 1.0;
+
+  // Diagnosed: boost
+  const diagnosedMult = hasWord(NLP_DIAGNOSED_MARKERS) ? 1.85 : 1.0;
+
+  return {
+    intensityMult,
+    hedgeMult,
+    personMult,
+    questionMult,
+    chronicMult,
+    diagnosedMult,
+    combinedMult: intensityMult * hedgeMult * personMult * questionMult * chronicMult * diagnosedMult,
+  };
 }
+
+// ── Negation check ──
+// Returns true if a negation word appears within 5 tokens before matchStart,
+// OR if certain "recovery" phrases negate the whole sentence context.
+
+function nlpIsNegated(sentence, matchStart) {
+  const windowBefore = sentence.slice(Math.max(0, matchStart - 60), matchStart);
+  const tokens = windowBefore.trim().split(/\s+/).slice(-5);
+  if (tokens.some(t => NLP_NEGATION_WORDS.includes(t))) return true;
+  // Multi-word negations
+  if (/\b(no longer|not really|not much|getting better|stopped feeling|used to but|less and less)\b/.test(windowBefore)) return true;
+  return false;
+}
+
+// ── Core analysis ──
 
 function nlpAnalyse(rawText) {
   const norm = nlpNormalise(rawText);
   const sentences = nlpSentences(norm);
 
-  // scores[conditionId] = { score, matched: [{phrase, start, end}] }
-  const scores = {};
-  Object.keys(NLP_SYMPTOMS).forEach(id => { scores[id] = { score: 0, matched: [] }; });
+  // conditionId → { rawScore, conceptsFired: Set }
+  const acc = {};
+  Object.keys(NLP_CONCEPTS).forEach(id => {
+    acc[id] = { rawScore: 0, conceptsFired: new Set(), triggerPhrases: [] };
+  });
 
   sentences.forEach(sentence => {
-    Object.entries(NLP_SYMPTOMS).forEach(([condId, cond]) => {
-      // Sort phrases longest-first so "panic attack" matches before "panic"
-      const sorted = [...cond.phrases].sort((a, b) => b.t.length - a.t.length);
-      const alreadyCovered = []; // character ranges matched in this sentence
+    const meta = nlpSentenceMeta(sentence);
 
-      sorted.forEach(({ t, w }) => {
-        let idx = sentence.indexOf(t);
-        while (idx !== -1) {
-          const end = idx + t.length;
-          // Check we're not inside a longer already-matched span
-          const overlaps = alreadyCovered.some(([s, e]) => idx >= s && end <= e);
-          if (!overlaps && !nlpHasNegation(sentence, idx)) {
-            alreadyCovered.push([idx, end]);
-            scores[condId].score += w;
-            scores[condId].matched.push(t);
+    Object.entries(NLP_CONCEPTS).forEach(([condId, cond]) => {
+      cond.concepts.forEach(concept => {
+        // Sort phrases longest-first (prevents sub-phrase stealing)
+        const sorted = [...concept.phrases].sort((a, b) => b.length - a.length);
+        let firedInSentence = false;
+
+        sorted.forEach(phrase => {
+          if (firedInSentence) return; // one match per concept per sentence
+          let idx = sentence.indexOf(phrase);
+          if (idx === -1) return;
+          // Word boundary check: character before must be start-of-string or space
+          const charBefore = idx > 0 ? sentence[idx - 1] : ' ';
+          const charAfter  = idx + phrase.length < sentence.length ? sentence[idx + phrase.length] : ' ';
+          if (!/[\s]/.test(charBefore) && charBefore !== '') {
+            // Partial-word match — re-check
+            if (!/^\s/.test(charBefore) && idx > 0) return;
           }
-          idx = sentence.indexOf(t, idx + 1);
+          if (nlpIsNegated(sentence, idx)) return;
+
+          // Fire this concept
+          firedInSentence = true;
+          const score = concept.w * meta.combinedMult;
+          acc[condId].rawScore += score;
+          acc[condId].conceptsFired.add(concept.name);
+          acc[condId].triggerPhrases.push(phrase);
+        });
+      });
+    });
+  });
+
+  // ── Score normalisation ──
+  // combined = 0.55 × (rawScore/cap) + 0.45 × (coverage ratio)
+  const CAP = 4.0;
+
+  let results = Object.entries(acc).map(([id, data]) => {
+    const cond = NLP_CONCEPTS[id];
+    const totalConcepts = cond.concepts.length;
+    const coverage = data.conceptsFired.size / totalConcepts;
+    const normalised = Math.min(1, data.rawScore / CAP);
+    const combined = 0.55 * normalised + 0.45 * coverage;
+    return {
+      id,
+      label: cond.label,
+      confidence: Math.min(99, Math.round(combined * 100)),
+      rawScore: data.rawScore,
+      coverage,
+      conceptsFired: [...data.conceptsFired],
+      triggers: [...new Set(data.triggerPhrases)].slice(0, 6),
+    };
+  });
+
+  // ── Co-occurrence boosting ──
+  const confMap = {};
+  results.forEach(r => { confMap[r.id] = r.confidence; });
+  NLP_COOCCURRENCE.forEach(([a, b, boost]) => {
+    if ((confMap[a] || 0) >= 20 && (confMap[b] || 0) >= 20) {
+      confMap[a] = Math.min(99, confMap[a] + Math.round(boost * 100));
+      confMap[b] = Math.min(99, confMap[b] + Math.round(boost * 100));
+    }
+  });
+  results.forEach(r => { r.confidence = confMap[r.id]; });
+
+  // ── Filter & sort ──
+  results = results
+    .filter(r => r.confidence >= 14)
+    .sort((a, b) => b.confidence - a.confidence);
+
+  // ── Severity tier ──
+  results.forEach(r => {
+    if (r.confidence >= 72)      r.severity = 'Significant';
+    else if (r.confidence >= 48) r.severity = 'Moderate';
+    else if (r.confidence >= 28) r.severity = 'Mild';
+    else                          r.severity = 'Possible';
+  });
+
+  return results;
+}
+
+// ── Highlight builder ──
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function nlpBuildHighlight(rawText, results) {
+  const lower = rawText.toLowerCase().replace(/[''`]/g, "'");
+  const spans = [];
+
+  results.forEach(({ id }) => {
+    const cond = NLP_CONCEPTS[id];
+    cond.concepts.forEach(concept => {
+      const sorted = [...concept.phrases].sort((a, b) => b.length - a.length);
+      sorted.forEach(phrase => {
+        let idx = lower.indexOf(phrase);
+        while (idx !== -1) {
+          const end = idx + phrase.length;
+          if (!spans.some(s => idx >= s.start && end <= s.end)) {
+            spans.push({ start: idx, end, condId: id });
+          }
+          idx = lower.indexOf(phrase, idx + 1);
         }
       });
     });
   });
 
-  // Normalise: cap at 3.0 raw score → 100%
-  const CAP = 3.0;
-  const results = Object.entries(scores)
-    .map(([id, { score, matched }]) => ({
-      id,
-      label: NLP_SYMPTOMS[id].label,
-      confidence: Math.min(100, Math.round((score / CAP) * 100)),
-      triggers: [...new Set(matched)].slice(0, 5),
-    }))
-    .filter(r => r.confidence >= 15)
-    .sort((a, b) => b.confidence - a.confidence);
-
-  return results;
-}
-
-// Build highlighted HTML — underlines matched phrases in the original text
-function nlpBuildHighlight(rawText, results) {
-  // Build a list of {start, end, condId} spans from the normalised text
-  // Map back to positions in a lowercased version of raw text
-  const lower = rawText.toLowerCase().replace(/['']/g, "'");
-  const spans = []; // {start, end, condId}
-
-  results.forEach(({ id }) => {
-    const cond = NLP_SYMPTOMS[id];
-    const sorted = [...cond.phrases].sort((a, b) => b.t.length - a.t.length);
-    sorted.forEach(({ t }) => {
-      let idx = lower.indexOf(t);
-      while (idx !== -1) {
-        const end = idx + t.length;
-        // Avoid double-marking
-        if (!spans.some(s => idx >= s.start && end <= s.end)) {
-          spans.push({ start: idx, end, condId: id });
-        }
-        idx = lower.indexOf(t, idx + 1);
-      }
-    });
-  });
-
   spans.sort((a, b) => a.start - b.start);
-
-  let out = '';
-  let cursor = 0;
+  let out = '', cursor = 0;
   spans.forEach(({ start, end, condId }) => {
-    if (start < cursor) return; // skip overlapping
+    if (start < cursor) return;
     out += escapeHtml(rawText.slice(cursor, start));
-    out += `<mark class="nlp-mark nlp-mark-${condId}" title="${NLP_SYMPTOMS[condId].label}">${escapeHtml(rawText.slice(start, end))}</mark>`;
+    out += `<mark class="nlp-mark nlp-mark-${condId}" title="${NLP_CONCEPTS[condId].label}">${escapeHtml(rawText.slice(start, end))}</mark>`;
     cursor = end;
   });
   out += escapeHtml(rawText.slice(cursor));
   return out;
 }
 
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
 // ── NLP UI ──
 
 (function initNLP() {
-  const toggle  = document.getElementById('nlp-toggle');
-  const body    = document.getElementById('nlp-panel-body');
-  const chevron = document.getElementById('nlp-chevron');
+  const toggle     = document.getElementById('nlp-toggle');
+  const body       = document.getElementById('nlp-panel-body');
+  const chevron    = document.getElementById('nlp-chevron');
   const analyzeBtn = document.getElementById('nlp-analyze-btn');
   const resultsBox = document.getElementById('nlp-results');
   const applyBtn   = document.getElementById('nlp-apply-btn');
@@ -2819,7 +3637,6 @@ function escapeHtml(s) {
 
   let lastResults = [];
 
-  // Expand / collapse panel
   function togglePanel() {
     const open = body.classList.toggle('open');
     chevron.style.transform = open ? 'rotate(180deg)' : '';
@@ -2827,22 +3644,19 @@ function escapeHtml(s) {
     if (open) document.getElementById('nlp-input').focus();
   }
   toggle.addEventListener('click', togglePanel);
-  toggle.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePanel(); } });
+  toggle.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePanel(); }
+  });
 
-  // Analyze
   analyzeBtn.addEventListener('click', () => {
     const text = document.getElementById('nlp-input').value.trim();
-    if (!text) return;
     if (text.length < 10) {
       document.getElementById('nlp-input').style.borderColor = 'var(--burgundy)';
       return;
     }
     document.getElementById('nlp-input').style.borderColor = '';
-
     analyzeBtn.disabled = true;
     analyzeBtn.textContent = 'Analysing…';
-
-    // Small timeout so button state renders before synchronous work
     setTimeout(() => {
       lastResults = nlpAnalyse(text);
       renderNLPResults(text, lastResults);
@@ -2851,71 +3665,70 @@ function escapeHtml(s) {
     }, 60);
   });
 
-  // Also run on Enter (if textarea is single line-ish)
   document.getElementById('nlp-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey && document.getElementById('nlp-input').value.length < 200) {
-      e.preventDefault();
-      analyzeBtn.click();
+      e.preventDefault(); analyzeBtn.click();
     }
   });
 
-  // Apply results to concern pills
   applyBtn.addEventListener('click', () => {
-    const threshold = 25; // only auto-select if ≥ 25% confidence
+    const threshold = 25;
     const toSelect = lastResults.filter(r => r.confidence >= threshold).map(r => r.id);
     let count = 0;
     document.querySelectorAll('#concerns-grid .pill').forEach(pill => {
       const cb = pill.querySelector('input');
-      if (toSelect.includes(cb.value)) {
-        cb.checked = true;
-        pill.classList.add('selected');
-        count++;
-      }
+      if (toSelect.includes(cb.value)) { cb.checked = true; pill.classList.add('selected'); count++; }
     });
     document.getElementById('nlp-apply-note').textContent =
-      count > 0 ? `${count} concern${count > 1 ? 's' : ''} selected.` : 'No matching concerns to apply.';
-    // Scroll to concerns
+      count ? `${count} concern${count > 1 ? 's' : ''} applied.` : 'No matching concerns.';
     document.getElementById('concerns-grid').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
-  // Dismiss
   dismissBtn.addEventListener('click', () => {
     resultsBox.style.display = 'none';
     lastResults = [];
   });
 
+  function severityColor(sev) {
+    return sev === 'Significant' ? 'var(--burgundy)' :
+           sev === 'Moderate'    ? 'var(--plum)'    :
+           sev === 'Mild'        ? 'var(--navy)'    : 'var(--text-subtle)';
+  }
+
   function renderNLPResults(rawText, results) {
-    const crisisFound = results.some(r => r.id === 'suicidal_ideation' && r.confidence >= 30);
+    const crisisFound = results.some(r => r.id === 'suicidal_ideation' && r.confidence >= 25);
     document.getElementById('nlp-crisis-warning').style.display = crisisFound ? 'block' : 'none';
 
-    // Highlighted text
     document.getElementById('nlp-highlight-block').innerHTML =
       results.length > 0 ? nlpBuildHighlight(rawText, results) : escapeHtml(rawText);
 
-    // Char count
-    document.getElementById('nlp-char-count').textContent = `${rawText.length} characters`;
+    const wordCount = rawText.trim().split(/\s+/).length;
+    document.getElementById('nlp-char-count').textContent = `${wordCount} words`;
 
-    // Detection rows
     const detEl = document.getElementById('nlp-detections');
     if (results.length === 0) {
-      detEl.innerHTML = '<div style="font-size:.82rem;color:var(--text-subtle);padding:.5rem 0">No conditions detected — try describing your symptoms in more detail.</div>';
+      detEl.innerHTML = '<div style="font-size:.82rem;color:var(--text-subtle);padding:.5rem 0">No conditions detected — try writing more about your day-to-day experience.</div>';
     } else {
       detEl.innerHTML = results.map(r => {
-        const barColor = r.confidence >= 70 ? 'var(--navy)' :
-                         r.confidence >= 40 ? 'var(--plum)' : 'var(--text-subtle)';
-        const triggerHtml = r.triggers.length
-          ? `<div class="nlp-triggers">Matched: ${r.triggers.map(t => `<em>${t}</em>`).join(', ')}</div>`
+        const col = severityColor(r.severity);
+        const conceptsHtml = r.conceptsFired.length
+          ? `<div class="nlp-triggers">Concepts: ${r.conceptsFired.map(c => `<em>${c}</em>`).join(', ')}</div>`
           : '';
+        const triggersHtml = r.triggers.length
+          ? `<div class="nlp-triggers" style="margin-top:.1rem">Phrases: ${r.triggers.map(t => `"${t}"`).join(', ')}</div>`
+          : '';
+        const sevBadge = `<span style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-left:.5rem;white-space:nowrap">${r.severity}</span>`;
         return `
-          <div>
+          <div style="margin-bottom:.55rem">
             <div class="nlp-detection-row">
-              <span class="nlp-det-label">${r.label}</span>
+              <span class="nlp-det-label">${r.label}${sevBadge}</span>
               <div class="nlp-bar-wrap">
-                <div class="nlp-bar" style="width:${r.confidence}%;background:${barColor}"></div>
+                <div class="nlp-bar" style="width:${r.confidence}%;background:${col}"></div>
               </div>
               <span class="nlp-pct">${r.confidence}%</span>
             </div>
-            ${triggerHtml}
+            ${conceptsHtml}
+            ${triggersHtml}
           </div>`;
       }).join('');
     }
