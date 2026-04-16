@@ -1,0 +1,92 @@
+{
+  "trained_at": "2026-04-16T02:18:05.714256Z",
+  "model_type": "bayesian_ltr",
+  "samples": 500,
+  "features": 30,
+  "metrics": {
+    "rmse": 0.29472,
+    "mae": 0.26292,
+    "spearman": 0.10229,
+    "ndcg5": 0.62257
+  },
+  "cv": {
+    "rmse": {
+      "mean": 0.29024,
+      "std": 0.00843
+    },
+    "ndcg5": {
+      "mean": 0.42146,
+      "std": 0.10591
+    },
+    "spearman": {
+      "mean": -0.06299,
+      "std": 0.0806
+    }
+  },
+  "fairness_summary": {
+    "insurance": {
+      "max_disparity": 0.0025,
+      "flagged": false
+    },
+    "age_group": {
+      "max_disparity": 0.0006,
+      "flagged": false
+    },
+    "urgency": {
+      "max_disparity": 0.0047,
+      "flagged": false
+    }
+  },
+  "top_features": [
+    {
+      "name": "urgency_is_crisis",
+      "weight": -0.00092,
+      "rank": 1
+    },
+    {
+      "name": "concerns_overlap",
+      "weight": 0.00057,
+      "rank": 2
+    },
+    {
+      "name": "user_uninsured",
+      "weight": -0.00052,
+      "rank": 3
+    },
+    {
+      "name": "medicaid_x_uninsured",
+      "weight": -0.00044,
+      "rank": 4
+    },
+    {
+      "name": "tele_x_available",
+      "weight": -0.00038,
+      "rank": 5
+    },
+    {
+      "name": "has_telehealth",
+      "weight": -0.00038,
+      "rank": 6
+    },
+    {
+      "name": "accepts_medicaid",
+      "weight": -0.00038,
+      "rank": 7
+    },
+    {
+      "name": "is_cmhc",
+      "weight": -0.00038,
+      "rank": 8
+    },
+    {
+      "name": "concerns_x_modality",
+      "weight": 0.00037,
+      "rank": 9
+    },
+    {
+      "name": "gender_match",
+      "weight": 0.00032,
+      "rank": 10
+    }
+  ]
+}

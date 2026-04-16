@@ -1,0 +1,15 @@
+[
+  {
+    "run": 1,
+    "trained_at": "2026-04-16T02:18:05.714256Z",
+    "model_type": "bayesian_ltr",
+    "samples": 500,
+    "features": 30,
+    "rmse": 0.29472,
+    "mae": 0.26292,
+    "spearman": 0.10229,
+    "ndcg5": 0.62257,
+    "data_hash": "cdacb7c9",
+    "fairness_flags": 0
+  }
+]
