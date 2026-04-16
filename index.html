@@ -496,9 +496,259 @@
     .privacy-note a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
     .privacy-note a:hover { color: var(--navy); }
 
+    /* ── NLP Situation Panel ── */
+    .nlp-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nlp-toggle-row .section-label { border: none; padding-bottom: 0; margin-bottom: 0; cursor: pointer; }
+    .nlp-badge {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      background: var(--plum-light);
+      color: var(--plum);
+      border-radius: 3px;
+      padding: .1rem .45rem;
+    }
+    .nlp-chevron {
+      color: var(--text-subtle);
+      font-size: .72rem;
+      transition: transform .2s;
+      margin-left: .5rem;
+    }
+    .nlp-panel-body { display: none; margin-top: 1rem; }
+    .nlp-panel-body.open { display: block; }
+
+    .nlp-desc {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-bottom: .85rem;
+      line-height: 1.6;
+    }
+    textarea.nlp-input {
+      width: 100%;
+      padding: .7rem .85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: .875rem;
+      color: var(--text);
+      background: var(--surface);
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 100px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    textarea.nlp-input:focus {
+      outline: none;
+      border-color: var(--plum);
+      box-shadow: 0 0 0 3px rgba(82,57,110,.1);
+    }
+    .nlp-actions {
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+      margin-top: .65rem;
+      flex-wrap: wrap;
+    }
+    .btn-nlp {
+      background: var(--plum);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .52rem 1.25rem;
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-nlp:hover { background: #3e2a55; }
+    .btn-nlp:disabled { background: var(--border); cursor: not-allowed; color: var(--text-subtle); }
+    .nlp-privacy {
+      font-size: .72rem;
+      color: var(--text-subtle);
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+    }
+    .nlp-privacy-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--sage);
+      flex-shrink: 0;
+    }
+
+    /* Results box */
+    .nlp-results {
+      margin-top: 1rem;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .nlp-results-head {
+      background: var(--plum-light);
+      border-bottom: 1px solid #d6cce6;
+      padding: .6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nlp-results-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--plum);
+    }
+    .nlp-char-count {
+      font-size: .72rem;
+      color: var(--text-subtle);
+    }
+    .nlp-results-body { padding: 1rem; }
+
+    /* Highlighted text view */
+    .nlp-highlight-block {
+      font-size: .84rem;
+      line-height: 1.8;
+      color: var(--text-mid);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: .75rem 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-light);
+    }
+    .nlp-mark {
+      border-radius: 2px;
+      padding: .05em .15em;
+      font-weight: 500;
+      cursor: default;
+    }
+    /* Per-condition highlight colors */
+    .nlp-mark-depression   { background: #dce8f8; color: #1a4a7a; border-bottom: 2px solid #5b9bd5; }
+    .nlp-mark-anxiety      { background: #fff0dc; color: #7a4e1e; border-bottom: 2px solid #e8a048; }
+    .nlp-mark-trauma       { background: #f3e8f8; color: #52296e; border-bottom: 2px solid #9b5ec4; }
+    .nlp-mark-bipolar      { background: #e8f5e8; color: #1f5c2e; border-bottom: 2px solid #52a870; }
+    .nlp-mark-schizophrenia{ background: #fce8e8; color: #7d1a1a; border-bottom: 2px solid #d45a5a; }
+    .nlp-mark-adhd         { background: #fdf5dc; color: #5c4a10; border-bottom: 2px solid #c8a838; }
+    .nlp-mark-ocd          { background: #e8f2f8; color: #1a4c68; border-bottom: 2px solid #4a9ab8; }
+    .nlp-mark-eating_disorder { background: #f8e8f0; color: #6e1a4e; border-bottom: 2px solid #c45a98; }
+    .nlp-mark-substance_use { background: #e8ede8; color: #253d25; border-bottom: 2px solid #5a8a5a; }
+    .nlp-mark-suicidal_ideation { background: #fde8e8; color: #7d1a1a; border-bottom: 2px solid #d43030; }
+    .nlp-mark-grief        { background: #ece8f5; color: #3a2a6e; border-bottom: 2px solid #7a68c0; }
+    .nlp-mark-family       { background: #e8f5f8; color: #1a4858; border-bottom: 2px solid #4a98b0; }
+    .nlp-mark-lgbtq        { background: #fff0f8; color: #6e1a4e; border-bottom: 2px solid #e860b0; }
+    .nlp-mark-veteran      { background: #e8ece8; color: #2a3a1a; border-bottom: 2px solid #6a8a4a; }
+    .nlp-mark-chronic_illness { background: #f5ece8; color: #5c3018; border-bottom: 2px solid #c07848; }
+    .nlp-mark-crisis       { background: #ffe8e8; color: #7d1a1a; border-bottom: 2px solid #d43030; }
+
+    /* Detected condition rows */
+    .nlp-detections { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+    .nlp-detection-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .nlp-det-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text);
+      width: 160px;
+      flex-shrink: 0;
+    }
+    .nlp-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .nlp-bar {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--plum);
+      transition: width .4s ease;
+    }
+    .nlp-pct {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      width: 32px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .nlp-triggers {
+      font-size: .7rem;
+      color: var(--text-subtle);
+      margin-top: .15rem;
+      padding-left: 160px;
+      line-height: 1.4;
+    }
+
+    /* Crisis warning */
+    .nlp-crisis-warning {
+      background: var(--burgundy);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      padding: .7rem 1rem;
+      font-size: .82rem;
+      font-weight: 500;
+      margin-bottom: .85rem;
+      line-height: 1.55;
+    }
+    .nlp-crisis-warning a { color: #f5ccd1; font-weight: 700; text-decoration: none; }
+    .nlp-crisis-warning a:hover { text-decoration: underline; }
+
+    /* Apply / dismiss row */
+    .nlp-apply-row {
+      display: flex;
+      gap: .5rem;
+      align-items: center;
+      padding-top: .85rem;
+      border-top: 1px solid var(--border-light);
+      flex-wrap: wrap;
+    }
+    .btn-nlp-apply {
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .45rem 1.1rem;
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-nlp-apply:hover { background: var(--navy-dim); }
+    .btn-nlp-dismiss {
+      background: none;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .45rem .9rem;
+      font-family: inherit;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-nlp-dismiss:hover { border-color: var(--text-muted); color: var(--text); }
+    .nlp-apply-note {
+      font-size: .72rem;
+      color: var(--text-subtle);
+    }
+
     @media (max-width: 600px) {
       .search-card { padding: 1.25rem 1rem; }
       .form-grid { grid-template-columns: 1fr; }
+      .nlp-triggers { padding-left: 0; }
+      .nlp-det-label { width: 120px; }
     }
   </style>
 </head>
@@ -636,7 +886,58 @@
         </div>
       </div>
 
-      <!-- Section 3: Concerns -->
+      <!-- Section 3: NLP Situation Detector -->
+      <div class="form-section">
+        <div class="nlp-toggle-row" id="nlp-toggle" role="button" aria-expanded="false" tabindex="0">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div class="section-label" style="margin:0">Describe Your Situation</div>
+            <span class="nlp-badge">AI</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.3rem">
+            <span style="font-size:.72rem;color:var(--text-subtle)">auto-detect concerns</span>
+            <span class="nlp-chevron" id="nlp-chevron">&#9660;</span>
+          </div>
+        </div>
+        <div class="nlp-panel-body" id="nlp-panel-body">
+          <p class="nlp-desc">
+            Write freely about what you have been experiencing. The tool identifies likely conditions
+            from your words using pattern matching — no text is sent anywhere.
+          </p>
+          <textarea class="nlp-input" id="nlp-input"
+            placeholder="For example: &quot;I haven't been sleeping well and feel anxious most days. I had a really bad experience a few years ago that I can't stop thinking about...&quot;"
+            rows="4"></textarea>
+          <div class="nlp-actions">
+            <button type="button" class="btn-nlp" id="nlp-analyze-btn">Analyze</button>
+            <span class="nlp-privacy">
+              <span class="nlp-privacy-dot"></span>
+              Processed entirely in your browser — never transmitted
+            </span>
+          </div>
+          <div class="nlp-results" id="nlp-results" style="display:none">
+            <div class="nlp-results-head">
+              <span class="nlp-results-title">Analysis results</span>
+              <span class="nlp-char-count" id="nlp-char-count"></span>
+            </div>
+            <div class="nlp-results-body">
+              <div id="nlp-crisis-warning" class="nlp-crisis-warning" style="display:none">
+                Your description mentions thoughts of suicide or self-harm.
+                Please reach out now: <a href="tel:988">988</a> (call or text) &nbsp;&middot;&nbsp;
+                <a href="tel:6034484400">(603) 448-4400</a> Headrest &nbsp;&middot;&nbsp;
+                Text HOME to <a href="sms:741741">741741</a>
+              </div>
+              <div class="nlp-highlight-block" id="nlp-highlight-block"></div>
+              <div class="nlp-detections" id="nlp-detections"></div>
+              <div class="nlp-apply-row">
+                <button type="button" class="btn-nlp-apply" id="nlp-apply-btn">Apply to concern filters</button>
+                <button type="button" class="btn-nlp-dismiss" id="nlp-dismiss-btn">Dismiss</button>
+                <span class="nlp-apply-note" id="nlp-apply-note"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Concerns -->
       <div class="form-section">
         <div class="section-label">Concerns <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);font-size:.78rem">(select all that apply)</span></div>
         <div class="pill-grid" id="concerns-grid" role="group" aria-label="Mental health concerns"></div>
@@ -1967,6 +2268,663 @@ document.getElementById('clear-data-btn').addEventListener('click', () => {
 document.getElementById('close-panel-btn').addEventListener('click', () => {
   document.getElementById('data-panel').classList.remove('active');
 });
+
+// ═══════════════════════════════════════════════════
+//  NLP SITUATION DETECTOR
+//  Rule-based clinical NLP — runs 100% in-browser.
+//  Algorithm:
+//    1. Normalise input → lowercase, strip punctuation
+//    2. Split into sentences for negation scoping
+//    3. Per sentence: detect negation prefix within 4 tokens
+//    4. Match phrases longest-first (prevents sub-phrase false positives)
+//    5. Aggregate per-condition score; normalise to 0–100
+//    6. Highlight matched spans in original text
+//    7. Auto-select concern pills above threshold
+// ═══════════════════════════════════════════════════
+
+const NLP_SYMPTOMS = {
+  depression: {
+    label: 'Depression',
+    phrases: [
+      // high specificity
+      { t: 'depressed',                      w: 1.0 },
+      { t: 'depression',                     w: 1.0 },
+      { t: 'feel worthless',                 w: 1.0 },
+      { t: 'feeling worthless',              w: 1.0 },
+      { t: 'feel like a burden',             w: 1.0 },
+      { t: 'no reason to live',              w: 1.0 },
+      { t: 'hopeless',                       w: 0.95 },
+      { t: 'hopelessness',                   w: 0.95 },
+      { t: 'nothing matters',                w: 0.9 },
+      { t: 'nothing to look forward to',     w: 0.9 },
+      { t: 'lost interest',                  w: 0.9 },
+      { t: 'lost all interest',              w: 0.95 },
+      { t: 'no longer enjoy',                w: 0.9 },
+      { t: "don't enjoy anything",           w: 0.9 },
+      { t: 'empty inside',                   w: 0.9 },
+      { t: 'feel empty',                     w: 0.85 },
+      { t: 'feeling empty',                  w: 0.85 },
+      { t: "can't get out of bed",           w: 0.85 },
+      { t: 'isolating myself',               w: 0.8 },
+      { t: 'isolate myself',                 w: 0.8 },
+      { t: 'withdrawing from',               w: 0.8 },
+      // medium
+      { t: 'no motivation',                  w: 0.75 },
+      { t: 'lack of motivation',             w: 0.75 },
+      { t: "don't care anymore",             w: 0.75 },
+      { t: 'sad all the time',               w: 0.8 },
+      { t: 'constantly sad',                 w: 0.8 },
+      { t: 'cry a lot',                      w: 0.7 },
+      { t: 'crying all the time',            w: 0.75 },
+      { t: 'sleeping too much',              w: 0.65 },
+      { t: 'oversleeping',                   w: 0.65 },
+      { t: 'not eating',                     w: 0.5  },
+      { t: 'no appetite',                    w: 0.6  },
+      { t: 'lost my appetite',               w: 0.65 },
+      { t: 'numb',                           w: 0.55 },
+      { t: 'feeling numb',                   w: 0.65 },
+      // lower
+      { t: 'sad',                            w: 0.35 },
+      { t: 'sadness',                        w: 0.4  },
+      { t: 'low mood',                       w: 0.55 },
+      { t: 'feeling down',                   w: 0.45 },
+      { t: 'unmotivated',                    w: 0.55 },
+      { t: 'not myself',                     w: 0.3  },
+    ],
+  },
+  anxiety: {
+    label: 'Anxiety',
+    phrases: [
+      { t: 'anxiety',                        w: 1.0  },
+      { t: 'anxious',                        w: 0.95 },
+      { t: 'panic attack',                   w: 1.0  },
+      { t: 'panic attacks',                  w: 1.0  },
+      { t: 'constant worry',                 w: 0.9  },
+      { t: 'can\'t stop worrying',           w: 0.9  },
+      { t: 'excessive worry',                w: 0.9  },
+      { t: 'racing thoughts',                w: 0.85 },
+      { t: 'racing heart',                   w: 0.7  },
+      { t: 'heart pounding',                 w: 0.7  },
+      { t: 'heart racing',                   w: 0.7  },
+      { t: 'shortness of breath',            w: 0.65 },
+      { t: "can't breathe",                  w: 0.65 },
+      { t: 'hard to breathe',                w: 0.6  },
+      { t: 'chest tightness',                w: 0.65 },
+      { t: 'tight chest',                    w: 0.6  },
+      { t: 'catastrophizing',                w: 0.85 },
+      { t: 'worst case scenario',            w: 0.75 },
+      { t: 'on edge',                        w: 0.7  },
+      { t: 'always on edge',                 w: 0.8  },
+      { t: 'constantly nervous',             w: 0.8  },
+      { t: 'lying awake',                    w: 0.6  },
+      { t: 'can\'t sleep because',           w: 0.65 },
+      { t: 'mind won\'t stop',               w: 0.7  },
+      { t: 'overthinking',                   w: 0.7  },
+      { t: 'social anxiety',                 w: 1.0  },
+      { t: 'afraid of',                      w: 0.45 },
+      { t: 'scared of',                      w: 0.45 },
+      { t: 'phobia',                         w: 0.8  },
+      { t: 'dread',                          w: 0.55 },
+      { t: 'nervous',                        w: 0.4  },
+      { t: 'worried',                        w: 0.45 },
+      { t: 'worrying',                       w: 0.45 },
+      { t: 'restless',                       w: 0.4  },
+    ],
+  },
+  trauma: {
+    label: 'Trauma & PTSD',
+    phrases: [
+      { t: 'ptsd',                           w: 1.0  },
+      { t: 'trauma',                         w: 1.0  },
+      { t: 'traumatic',                      w: 0.95 },
+      { t: 'flashback',                      w: 1.0  },
+      { t: 'flashbacks',                     w: 1.0  },
+      { t: 'nightmare',                      w: 0.8  },
+      { t: 'nightmares',                     w: 0.85 },
+      { t: 'intrusive thoughts',             w: 0.95 },
+      { t: 'intrusive memories',             w: 0.95 },
+      { t: 'reliving',                       w: 0.85 },
+      { t: "can't stop thinking about what happened", w: 0.95 },
+      { t: 'abused',                         w: 0.85 },
+      { t: 'abuse',                          w: 0.8  },
+      { t: 'assaulted',                      w: 0.9  },
+      { t: 'sexual assault',                 w: 1.0  },
+      { t: 'rape',                           w: 1.0  },
+      { t: 'hypervigilant',                  w: 0.9  },
+      { t: 'hypervigilance',                 w: 0.9  },
+      { t: 'triggered',                      w: 0.65 },
+      { t: 'triggers',                       w: 0.65 },
+      { t: 'avoidance',                      w: 0.6  },
+      { t: 'avoid reminders',                w: 0.8  },
+      { t: 'startle easily',                 w: 0.75 },
+      { t: 'feel unsafe',                    w: 0.7  },
+      { t: 'bad experience',                 w: 0.5  },
+      { t: 'difficult experience',           w: 0.4  },
+    ],
+  },
+  bipolar: {
+    label: 'Bipolar Disorder',
+    phrases: [
+      { t: 'bipolar',                        w: 1.0  },
+      { t: 'manic',                          w: 1.0  },
+      { t: 'mania',                          w: 1.0  },
+      { t: 'mood swings',                    w: 0.9  },
+      { t: 'extreme mood swings',            w: 1.0  },
+      { t: 'highs and lows',                 w: 0.85 },
+      { t: 'high and low',                   w: 0.75 },
+      { t: 'periods of energy',              w: 0.7  },
+      { t: 'grandiose',                      w: 0.85 },
+      { t: 'not sleeping for days',          w: 0.85 },
+      { t: 'barely sleeping',                w: 0.6  },
+      { t: 'impulsive decisions',            w: 0.7  },
+      { t: 'hypomania',                      w: 1.0  },
+      { t: 'hypomanic',                      w: 1.0  },
+      { t: 'spending sprees',                w: 0.7  },
+      { t: 'racing mind',                    w: 0.55 },
+      { t: 'crash',                          w: 0.3  },
+    ],
+  },
+  schizophrenia: {
+    label: 'Psychosis',
+    phrases: [
+      { t: 'schizophrenia',                  w: 1.0  },
+      { t: 'psychosis',                      w: 1.0  },
+      { t: 'psychotic',                      w: 1.0  },
+      { t: 'hearing voices',                 w: 1.0  },
+      { t: 'hear voices',                    w: 1.0  },
+      { t: 'seeing things',                  w: 0.9  },
+      { t: 'hallucination',                  w: 1.0  },
+      { t: 'hallucinations',                 w: 1.0  },
+      { t: 'paranoid',                       w: 0.85 },
+      { t: 'paranoia',                       w: 0.85 },
+      { t: 'delusion',                       w: 0.9  },
+      { t: 'delusions',                      w: 0.9  },
+      { t: 'people are out to get me',       w: 0.9  },
+      { t: 'being watched',                  w: 0.6  },
+      { t: 'losing touch with reality',      w: 0.9  },
+      { t: 'not real',                       w: 0.4  },
+    ],
+  },
+  adhd: {
+    label: 'ADHD',
+    phrases: [
+      { t: 'adhd',                           w: 1.0  },
+      { t: 'attention deficit',              w: 1.0  },
+      { t: 'can\'t focus',                   w: 0.8  },
+      { t: 'difficulty focusing',            w: 0.85 },
+      { t: 'trouble focusing',               w: 0.8  },
+      { t: 'hard to concentrate',            w: 0.75 },
+      { t: 'can\'t concentrate',             w: 0.8  },
+      { t: 'easily distracted',              w: 0.85 },
+      { t: 'always distracted',              w: 0.8  },
+      { t: 'impulsive',                      w: 0.75 },
+      { t: 'impulsivity',                    w: 0.8  },
+      { t: 'hyperactive',                    w: 0.85 },
+      { t: 'can\'t sit still',               w: 0.75 },
+      { t: 'forgetful',                      w: 0.55 },
+      { t: 'always forgetting',              w: 0.65 },
+      { t: 'procrastinate',                  w: 0.5  },
+      { t: 'procrastination',                w: 0.5  },
+      { t: 'overwhelmed by tasks',           w: 0.7  },
+      { t: 'never finish',                   w: 0.45 },
+      { t: 'inattentive',                    w: 0.8  },
+    ],
+  },
+  ocd: {
+    label: 'OCD',
+    phrases: [
+      { t: 'ocd',                            w: 1.0  },
+      { t: 'obsessive',                      w: 0.9  },
+      { t: 'obsessions',                     w: 0.9  },
+      { t: 'compulsion',                     w: 0.95 },
+      { t: 'compulsions',                    w: 0.95 },
+      { t: 'compulsive',                     w: 0.9  },
+      { t: 'rituals',                        w: 0.75 },
+      { t: 'checking',                       w: 0.55 },
+      { t: 'check things',                   w: 0.6  },
+      { t: 'check the door',                 w: 0.75 },
+      { t: 'check the stove',                w: 0.75 },
+      { t: 'intrusive thought',              w: 0.85 },
+      { t: 'unwanted thought',               w: 0.8  },
+      { t: 'contamination',                  w: 0.75 },
+      { t: 'germs',                          w: 0.55 },
+      { t: 'can\'t stop the thoughts',       w: 0.75 },
+      { t: 'repeating',                      w: 0.4  },
+      { t: 'counting',                       w: 0.35 },
+    ],
+  },
+  eating_disorder: {
+    label: 'Eating Disorder',
+    phrases: [
+      { t: 'eating disorder',                w: 1.0  },
+      { t: 'anorexia',                       w: 1.0  },
+      { t: 'anorexic',                       w: 1.0  },
+      { t: 'bulimia',                        w: 1.0  },
+      { t: 'bulimic',                        w: 1.0  },
+      { t: 'binge eating',                   w: 1.0  },
+      { t: 'binge and purge',                w: 1.0  },
+      { t: 'purging',                        w: 0.95 },
+      { t: 'restricting food',               w: 0.9  },
+      { t: 'restricting eating',             w: 0.9  },
+      { t: 'afraid to eat',                  w: 0.85 },
+      { t: 'fear of weight',                 w: 0.85 },
+      { t: 'body image',                     w: 0.8  },
+      { t: 'hate my body',                   w: 0.75 },
+      { t: 'count calories',                 w: 0.7  },
+      { t: 'counting calories',              w: 0.7  },
+      { t: 'obsessed with food',             w: 0.8  },
+      { t: 'obsessed with weight',           w: 0.85 },
+    ],
+  },
+  substance_use: {
+    label: 'Substance Use',
+    phrases: [
+      { t: 'substance use',                  w: 1.0  },
+      { t: 'substance abuse',                w: 1.0  },
+      { t: 'addiction',                      w: 1.0  },
+      { t: 'addicted',                       w: 1.0  },
+      { t: 'drinking too much',              w: 0.95 },
+      { t: 'can\'t stop drinking',           w: 1.0  },
+      { t: 'alcohol problem',                w: 1.0  },
+      { t: 'alcoholism',                     w: 1.0  },
+      { t: 'alcoholic',                      w: 1.0  },
+      { t: 'drug use',                       w: 0.9  },
+      { t: 'using drugs',                    w: 0.9  },
+      { t: 'drug addiction',                 w: 1.0  },
+      { t: 'opioid',                         w: 1.0  },
+      { t: 'opioids',                        w: 1.0  },
+      { t: 'heroin',                         w: 1.0  },
+      { t: 'fentanyl',                       w: 1.0  },
+      { t: 'cocaine',                        w: 1.0  },
+      { t: 'meth',                           w: 1.0  },
+      { t: 'relapse',                        w: 0.9  },
+      { t: 'sobriety',                       w: 0.8  },
+      { t: 'recovery',                       w: 0.5  },
+      { t: 'withdrawal',                     w: 0.85 },
+      { t: 'in recovery',                    w: 0.75 },
+      { t: 'gambling',                       w: 0.7  },
+      { t: 'gambling problem',               w: 0.9  },
+    ],
+  },
+  suicidal_ideation: {
+    label: 'Suicidal Thoughts',
+    phrases: [
+      { t: 'suicidal',                       w: 1.0  },
+      { t: 'suicide',                        w: 1.0  },
+      { t: 'want to die',                    w: 1.0  },
+      { t: 'wanting to die',                 w: 1.0  },
+      { t: 'wish i was dead',                w: 1.0  },
+      { t: 'wish i were dead',               w: 1.0  },
+      { t: 'kill myself',                    w: 1.0  },
+      { t: 'end my life',                    w: 1.0  },
+      { t: 'ending my life',                 w: 1.0  },
+      { t: 'not want to be here',            w: 0.9  },
+      { t: 'don\'t want to be here',         w: 0.9  },
+      { t: "don't want to be alive",         w: 1.0  },
+      { t: 'self harm',                      w: 0.9  },
+      { t: 'self-harm',                      w: 0.9  },
+      { t: 'cutting myself',                 w: 0.9  },
+      { t: 'hurting myself',                 w: 0.85 },
+      { t: 'hurt myself',                    w: 0.85 },
+      { t: 'life is not worth',              w: 0.9  },
+      { t: 'no point in living',             w: 0.95 },
+      { t: 'better off dead',                w: 1.0  },
+      { t: 'better off without me',          w: 1.0  },
+    ],
+  },
+  grief: {
+    label: 'Grief & Loss',
+    phrases: [
+      { t: 'grief',                          w: 1.0  },
+      { t: 'grieving',                       w: 1.0  },
+      { t: 'bereavement',                    w: 1.0  },
+      { t: 'lost someone',                   w: 0.95 },
+      { t: 'someone died',                   w: 0.95 },
+      { t: 'death of',                       w: 0.9  },
+      { t: 'passed away',                    w: 0.85 },
+      { t: 'lost my',                        w: 0.6  },
+      { t: 'miss them',                      w: 0.6  },
+      { t: 'miss her',                       w: 0.5  },
+      { t: 'miss him',                       w: 0.5  },
+      { t: 'mourning',                       w: 0.9  },
+      { t: 'can\'t move on',                 w: 0.55 },
+      { t: 'complicated grief',              w: 1.0  },
+    ],
+  },
+  family: {
+    label: 'Family & Relationships',
+    phrases: [
+      { t: 'relationship problems',          w: 0.9  },
+      { t: 'marriage problems',              w: 0.95 },
+      { t: 'divorce',                        w: 0.85 },
+      { t: 'divorcing',                      w: 0.85 },
+      { t: 'separating from',                w: 0.7  },
+      { t: 'co-parenting',                   w: 0.8  },
+      { t: 'parenting struggles',            w: 0.8  },
+      { t: 'my child',                       w: 0.4  },
+      { t: 'my kids',                        w: 0.35 },
+      { t: 'family conflict',                w: 0.85 },
+      { t: 'abusive relationship',           w: 0.95 },
+      { t: 'domestic violence',              w: 1.0  },
+      { t: 'controlling partner',            w: 0.9  },
+      { t: 'toxic relationship',             w: 0.85 },
+      { t: 'codependent',                    w: 0.8  },
+      { t: 'codependency',                   w: 0.8  },
+      { t: 'communication issues',           w: 0.55 },
+      { t: 'trust issues',                   w: 0.6  },
+      { t: 'infidelity',                     w: 0.85 },
+      { t: 'cheating',                       w: 0.65 },
+    ],
+  },
+  lgbtq: {
+    label: 'LGBTQ+ Issues',
+    phrases: [
+      { t: 'lgbtq',                          w: 1.0  },
+      { t: 'coming out',                     w: 0.95 },
+      { t: 'gender identity',                w: 1.0  },
+      { t: 'gender dysphoria',               w: 1.0  },
+      { t: 'transgender',                    w: 0.9  },
+      { t: 'nonbinary',                      w: 0.85 },
+      { t: 'non-binary',                     w: 0.85 },
+      { t: 'gay',                            w: 0.5  },
+      { t: 'lesbian',                        w: 0.5  },
+      { t: 'bisexual',                       w: 0.6  },
+      { t: 'queer',                          w: 0.5  },
+      { t: 'sexuality',                      w: 0.45 },
+      { t: 'sexual identity',                w: 0.75 },
+      { t: 'homophobia',                     w: 0.9  },
+      { t: 'transphobia',                    w: 0.9  },
+      { t: 'family rejection',               w: 0.7  },
+    ],
+  },
+  veteran: {
+    label: 'Veteran & Military',
+    phrases: [
+      { t: 'veteran',                        w: 1.0  },
+      { t: 'military',                       w: 0.8  },
+      { t: 'combat',                         w: 0.9  },
+      { t: 'deployment',                     w: 0.9  },
+      { t: 'deployed',                       w: 0.85 },
+      { t: 'service member',                 w: 0.95 },
+      { t: 'army',                           w: 0.6  },
+      { t: 'navy',                           w: 0.6  },
+      { t: 'marine',                         w: 0.6  },
+      { t: 'air force',                      w: 0.65 },
+      { t: 'war',                            w: 0.5  },
+      { t: 'discharged',                     w: 0.6  },
+      { t: 'mst',                            w: 0.9  },
+      { t: 'military sexual trauma',         w: 1.0  },
+      { t: 'va benefits',                    w: 0.7  },
+    ],
+  },
+  chronic_illness: {
+    label: 'Chronic Illness',
+    phrases: [
+      { t: 'chronic pain',                   w: 1.0  },
+      { t: 'chronic illness',                w: 1.0  },
+      { t: 'chronic condition',              w: 0.9  },
+      { t: 'terminal',                       w: 0.85 },
+      { t: 'cancer',                         w: 0.8  },
+      { t: 'fibromyalgia',                   w: 1.0  },
+      { t: 'multiple sclerosis',             w: 1.0  },
+      { t: 'lupus',                          w: 1.0  },
+      { t: 'diabetes',                       w: 0.6  },
+      { t: 'heart disease',                  w: 0.7  },
+      { t: 'long-term illness',              w: 0.85 },
+      { t: 'managing illness',               w: 0.8  },
+      { t: 'health anxiety',                 w: 0.85 },
+      { t: 'medical trauma',                 w: 0.9  },
+      { t: 'disability',                     w: 0.6  },
+    ],
+  },
+  crisis: {
+    label: 'Immediate Crisis',
+    phrases: [
+      { t: 'in crisis',                      w: 1.0  },
+      { t: 'having a crisis',                w: 1.0  },
+      { t: 'emergency',                      w: 0.7  },
+      { t: 'right now',                      w: 0.3  },
+      { t: 'can\'t cope',                    w: 0.8  },
+      { t: 'falling apart',                  w: 0.75 },
+      { t: 'breaking down',                  w: 0.75 },
+      { t: 'at my limit',                    w: 0.75 },
+      { t: 'at the end',                     w: 0.55 },
+      { t: 'losing control',                 w: 0.7  },
+      { t: 'don\'t know what to do',         w: 0.4  },
+      { t: 'desperate',                      w: 0.65 },
+      { t: 'out of options',                 w: 0.7  },
+      { t: 'need help now',                  w: 0.85 },
+      { t: 'urgent',                         w: 0.5  },
+    ],
+  },
+};
+
+// ── NLP Engine ──
+
+const NEGATION_WORDS = ['not','no',"don't","doesn't","didn't","never","without","barely","hardly",
+                        "can't","cannot","won't","wouldn't","isn't","aren't","wasn't","weren't",
+                        "haven't","hadn't","shouldn't","nothing","neither","nor","rarely"];
+
+function nlpNormalise(text) {
+  return text.toLowerCase().replace(/['']/g, "'").replace(/[^a-z0-9\s']/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function nlpSentences(text) {
+  return text.split(/[.!?\n]+/).map(s => s.trim()).filter(Boolean);
+}
+
+function nlpHasNegation(sentence, matchStart) {
+  // Check up to 5 words before the match for a negation word
+  const before = sentence.slice(0, matchStart).trim().split(/\s+/).slice(-5);
+  return before.some(w => NEGATION_WORDS.includes(w));
+}
+
+function nlpAnalyse(rawText) {
+  const norm = nlpNormalise(rawText);
+  const sentences = nlpSentences(norm);
+
+  // scores[conditionId] = { score, matched: [{phrase, start, end}] }
+  const scores = {};
+  Object.keys(NLP_SYMPTOMS).forEach(id => { scores[id] = { score: 0, matched: [] }; });
+
+  sentences.forEach(sentence => {
+    Object.entries(NLP_SYMPTOMS).forEach(([condId, cond]) => {
+      // Sort phrases longest-first so "panic attack" matches before "panic"
+      const sorted = [...cond.phrases].sort((a, b) => b.t.length - a.t.length);
+      const alreadyCovered = []; // character ranges matched in this sentence
+
+      sorted.forEach(({ t, w }) => {
+        let idx = sentence.indexOf(t);
+        while (idx !== -1) {
+          const end = idx + t.length;
+          // Check we're not inside a longer already-matched span
+          const overlaps = alreadyCovered.some(([s, e]) => idx >= s && end <= e);
+          if (!overlaps && !nlpHasNegation(sentence, idx)) {
+            alreadyCovered.push([idx, end]);
+            scores[condId].score += w;
+            scores[condId].matched.push(t);
+          }
+          idx = sentence.indexOf(t, idx + 1);
+        }
+      });
+    });
+  });
+
+  // Normalise: cap at 3.0 raw score → 100%
+  const CAP = 3.0;
+  const results = Object.entries(scores)
+    .map(([id, { score, matched }]) => ({
+      id,
+      label: NLP_SYMPTOMS[id].label,
+      confidence: Math.min(100, Math.round((score / CAP) * 100)),
+      triggers: [...new Set(matched)].slice(0, 5),
+    }))
+    .filter(r => r.confidence >= 15)
+    .sort((a, b) => b.confidence - a.confidence);
+
+  return results;
+}
+
+// Build highlighted HTML — underlines matched phrases in the original text
+function nlpBuildHighlight(rawText, results) {
+  // Build a list of {start, end, condId} spans from the normalised text
+  // Map back to positions in a lowercased version of raw text
+  const lower = rawText.toLowerCase().replace(/['']/g, "'");
+  const spans = []; // {start, end, condId}
+
+  results.forEach(({ id }) => {
+    const cond = NLP_SYMPTOMS[id];
+    const sorted = [...cond.phrases].sort((a, b) => b.t.length - a.t.length);
+    sorted.forEach(({ t }) => {
+      let idx = lower.indexOf(t);
+      while (idx !== -1) {
+        const end = idx + t.length;
+        // Avoid double-marking
+        if (!spans.some(s => idx >= s.start && end <= s.end)) {
+          spans.push({ start: idx, end, condId: id });
+        }
+        idx = lower.indexOf(t, idx + 1);
+      }
+    });
+  });
+
+  spans.sort((a, b) => a.start - b.start);
+
+  let out = '';
+  let cursor = 0;
+  spans.forEach(({ start, end, condId }) => {
+    if (start < cursor) return; // skip overlapping
+    out += escapeHtml(rawText.slice(cursor, start));
+    out += `<mark class="nlp-mark nlp-mark-${condId}" title="${NLP_SYMPTOMS[condId].label}">${escapeHtml(rawText.slice(start, end))}</mark>`;
+    cursor = end;
+  });
+  out += escapeHtml(rawText.slice(cursor));
+  return out;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── NLP UI ──
+
+(function initNLP() {
+  const toggle  = document.getElementById('nlp-toggle');
+  const body    = document.getElementById('nlp-panel-body');
+  const chevron = document.getElementById('nlp-chevron');
+  const analyzeBtn = document.getElementById('nlp-analyze-btn');
+  const resultsBox = document.getElementById('nlp-results');
+  const applyBtn   = document.getElementById('nlp-apply-btn');
+  const dismissBtn = document.getElementById('nlp-dismiss-btn');
+
+  let lastResults = [];
+
+  // Expand / collapse panel
+  function togglePanel() {
+    const open = body.classList.toggle('open');
+    chevron.style.transform = open ? 'rotate(180deg)' : '';
+    toggle.setAttribute('aria-expanded', open);
+    if (open) document.getElementById('nlp-input').focus();
+  }
+  toggle.addEventListener('click', togglePanel);
+  toggle.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePanel(); } });
+
+  // Analyze
+  analyzeBtn.addEventListener('click', () => {
+    const text = document.getElementById('nlp-input').value.trim();
+    if (!text) return;
+    if (text.length < 10) {
+      document.getElementById('nlp-input').style.borderColor = 'var(--burgundy)';
+      return;
+    }
+    document.getElementById('nlp-input').style.borderColor = '';
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analysing…';
+
+    // Small timeout so button state renders before synchronous work
+    setTimeout(() => {
+      lastResults = nlpAnalyse(text);
+      renderNLPResults(text, lastResults);
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = 'Analyze';
+    }, 60);
+  });
+
+  // Also run on Enter (if textarea is single line-ish)
+  document.getElementById('nlp-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey && document.getElementById('nlp-input').value.length < 200) {
+      e.preventDefault();
+      analyzeBtn.click();
+    }
+  });
+
+  // Apply results to concern pills
+  applyBtn.addEventListener('click', () => {
+    const threshold = 25; // only auto-select if ≥ 25% confidence
+    const toSelect = lastResults.filter(r => r.confidence >= threshold).map(r => r.id);
+    let count = 0;
+    document.querySelectorAll('#concerns-grid .pill').forEach(pill => {
+      const cb = pill.querySelector('input');
+      if (toSelect.includes(cb.value)) {
+        cb.checked = true;
+        pill.classList.add('selected');
+        count++;
+      }
+    });
+    document.getElementById('nlp-apply-note').textContent =
+      count > 0 ? `${count} concern${count > 1 ? 's' : ''} selected.` : 'No matching concerns to apply.';
+    // Scroll to concerns
+    document.getElementById('concerns-grid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Dismiss
+  dismissBtn.addEventListener('click', () => {
+    resultsBox.style.display = 'none';
+    lastResults = [];
+  });
+
+  function renderNLPResults(rawText, results) {
+    const crisisFound = results.some(r => r.id === 'suicidal_ideation' && r.confidence >= 30);
+    document.getElementById('nlp-crisis-warning').style.display = crisisFound ? 'block' : 'none';
+
+    // Highlighted text
+    document.getElementById('nlp-highlight-block').innerHTML =
+      results.length > 0 ? nlpBuildHighlight(rawText, results) : escapeHtml(rawText);
+
+    // Char count
+    document.getElementById('nlp-char-count').textContent = `${rawText.length} characters`;
+
+    // Detection rows
+    const detEl = document.getElementById('nlp-detections');
+    if (results.length === 0) {
+      detEl.innerHTML = '<div style="font-size:.82rem;color:var(--text-subtle);padding:.5rem 0">No conditions detected — try describing your symptoms in more detail.</div>';
+    } else {
+      detEl.innerHTML = results.map(r => {
+        const barColor = r.confidence >= 70 ? 'var(--navy)' :
+                         r.confidence >= 40 ? 'var(--plum)' : 'var(--text-subtle)';
+        const triggerHtml = r.triggers.length
+          ? `<div class="nlp-triggers">Matched: ${r.triggers.map(t => `<em>${t}</em>`).join(', ')}</div>`
+          : '';
+        return `
+          <div>
+            <div class="nlp-detection-row">
+              <span class="nlp-det-label">${r.label}</span>
+              <div class="nlp-bar-wrap">
+                <div class="nlp-bar" style="width:${r.confidence}%;background:${barColor}"></div>
+              </div>
+              <span class="nlp-pct">${r.confidence}%</span>
+            </div>
+            ${triggerHtml}
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('nlp-apply-note').textContent = '';
+    resultsBox.style.display = 'block';
+    resultsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+})();
 
 // ── Init ──
 buildPills('concerns-grid',     CONCERNS_LIST,    null);
