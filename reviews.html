@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leave a Review | Upper Valley Mental Health Finder</title>
+  <meta name="description" content="Share your experience with a mental health provider in the Upper Valley to help others find the right care.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:          #1c3553;
+      --navy-dim:      #2c4e72;
+      --navy-light:    #edf2f7;
+      --sage:          #3d6b62;
+      --sage-dim:      #2f5249;
+      --sage-light:    #ebf4f2;
+      --burgundy:      #7d2d3a;
+      --burgundy-light:#faf0f2;
+      --amber:         #9a6330;
+      --amber-light:   #faf3eb;
+      --plum:          #52396e;
+      --plum-light:    #f3eff8;
+      --bg:            #f5f3ef;
+      --surface:       #ffffff;
+      --border:        #d8d4cc;
+      --border-light:  #ede9e3;
+      --text:          #1a1917;
+      --text-mid:      #38352f;
+      --text-muted:    #706c65;
+      --text-subtle:   #a09b93;
+      --radius:        8px;
+      --radius-sm:     5px;
+      --shadow-sm:     0 1px 2px rgba(20,16,10,.06);
+      --shadow:        0 1px 4px rgba(20,16,10,.08), 0 2px 8px rgba(20,16,10,.04);
+      --shadow-md:     0 4px 16px rgba(20,16,10,.10), 0 1px 4px rgba(20,16,10,.05);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 15px;
+      min-height: 100vh;
+    }
+
+    /* ── Crisis Banner ── */
+    .crisis-banner {
+      background: var(--burgundy);
+      color: #fff;
+      text-align: center;
+      padding: .55rem 1rem;
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+    .crisis-banner a { color: #f5ccd1; font-weight: 700; text-decoration: none; }
+    .crisis-banner a:hover { text-decoration: underline; }
+
+    /* ── Header ── */
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 2.25rem 1.5rem 2rem;
+      text-align: center;
+      border-bottom: 3px solid var(--sage);
+    }
+    header .eyebrow {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #8fb4cc;
+      margin-bottom: .75rem;
+    }
+    header h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(1.5rem, 4vw, 2.1rem);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -.01em;
+      color: #fff;
+    }
+    header p {
+      margin-top: .5rem;
+      color: #9bbdd4;
+      font-size: .88rem;
+      max-width: 520px;
+      margin-inline: auto;
+    }
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: 1rem;
+      color: #8fb4cc;
+      font-size: .78rem;
+      font-weight: 500;
+      text-decoration: none;
+      letter-spacing: .02em;
+      transition: color .15s;
+    }
+    .nav-back:hover { color: #fff; }
+    .nav-back svg { width: 14px; height: 14px; }
+
+    /* ── Layout ── */
+    .container { max-width: 740px; margin: 0 auto; padding: 0 1.25rem; }
+    main { padding-bottom: 4rem; }
+
+    /* ── Cards ── */
+    .form-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+      padding: 2rem 1.75rem 1.75rem;
+      margin: 2rem auto;
+    }
+    .form-card + .form-card { margin-top: 1.25rem; }
+
+    .card-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--navy);
+      margin-bottom: .25rem;
+    }
+    .card-subtitle {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .section-label {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-muted);
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 1rem;
+      margin-top: 1.5rem;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: .85rem; }
+    .form-group { display: flex; flex-direction: column; gap: .3rem; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: .52rem .7rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: .875rem;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color .15s, box-shadow .15s;
+      appearance: none; -webkit-appearance: none;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.55;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(28,53,83,.12);
+    }
+    input.error, select.error { border-color: var(--burgundy); }
+
+    /* ── Pills ── */
+    .pill-sublabel {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .4rem;
+    }
+    .pill-grid { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .15rem; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .3rem .7rem;
+      cursor: pointer;
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      transition: all .12s;
+      user-select: none;
+    }
+    .pill input { display: none; }
+    .pill:hover { border-color: var(--navy); color: var(--navy); background: var(--navy-light); }
+    .pill.selected { background: var(--navy-light); border-color: var(--navy); color: var(--navy); }
+    .pill.selected-green { background: var(--sage-light); border-color: var(--sage); color: var(--sage-dim); }
+
+    /* ── Star Rating ── */
+    .star-row {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+      margin-top: .3rem;
+    }
+    .star-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: .1rem;
+      font-size: 1.9rem;
+      color: var(--border);
+      transition: color .1s, transform .1s;
+      line-height: 1;
+    }
+    .star-btn:hover,
+    .star-btn.lit { color: var(--amber); }
+    .star-btn:hover { transform: scale(1.1); }
+    .star-label {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-left: .5rem;
+      min-width: 100px;
+    }
+
+    /* ── Outcome Toggles ── */
+    .toggle-group {
+      display: flex;
+      gap: .45rem;
+      flex-wrap: wrap;
+      margin-top: .3rem;
+    }
+    .toggle-opt {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .38rem .85rem;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .12s;
+      user-select: none;
+    }
+    .toggle-opt input { display: none; }
+    .toggle-opt:hover { border-color: var(--navy); color: var(--navy); }
+    .toggle-opt.yes-selected { background: var(--sage-light); border-color: var(--sage); color: var(--sage-dim); }
+    .toggle-opt.no-selected { background: var(--burgundy-light); border-color: var(--burgundy); color: var(--burgundy); }
+    .toggle-opt.neutral-selected { background: var(--navy-light); border-color: var(--navy); color: var(--navy); }
+
+    /* ── Cost section ── */
+    .cost-tier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: .5rem;
+      margin-top: .3rem;
+    }
+    .cost-opt {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .7rem .9rem;
+      cursor: pointer;
+      transition: all .12s;
+      user-select: none;
+    }
+    .cost-opt input { display: none; }
+    .cost-opt:hover { border-color: var(--navy); background: var(--navy-light); }
+    .cost-opt.selected { border-color: var(--sage); background: var(--sage-light); }
+    .cost-opt .cost-amount {
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+    }
+    .cost-opt.selected .cost-amount { color: var(--sage-dim); }
+    .cost-opt .cost-desc {
+      font-size: .72rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: .1rem;
+    }
+
+    /* ── Buttons ── */
+    .form-actions { display: flex; gap: .65rem; margin-top: 1.75rem; flex-wrap: wrap; align-items: center; }
+    .btn-primary {
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .65rem 1.75rem;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-primary:hover { background: var(--navy-dim); }
+    .btn-primary:disabled { background: var(--border); cursor: not-allowed; color: var(--text-subtle); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .65rem 1.2rem;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
+
+    /* ── Success banner ── */
+    .success-banner {
+      display: none;
+      background: var(--sage-light);
+      border: 1px solid #bdd8d4;
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    .success-banner.show { display: block; }
+    .success-banner strong {
+      display: block;
+      color: var(--sage-dim);
+      font-size: 1rem;
+      margin-bottom: .3rem;
+    }
+    .success-banner p { font-size: .84rem; color: var(--text-muted); }
+
+    .field-error {
+      font-size: .72rem;
+      color: var(--burgundy);
+      margin-top: .2rem;
+      display: none;
+    }
+    .field-error.show { display: block; }
+
+    /* ── Recent Reviews ── */
+    .reviews-section { margin-top: 2.5rem; }
+    .reviews-section h2 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--navy);
+      margin-bottom: .3rem;
+    }
+    .reviews-section .section-desc {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .review-card {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      margin-bottom: .65rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .review-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .review-provider-name {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .review-meta {
+      font-size: .74rem;
+      color: var(--text-subtle);
+      margin-top: .1rem;
+    }
+    .review-stars { color: var(--amber); font-size: .95rem; letter-spacing: .05em; }
+    .review-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .65rem; }
+    .review-tag {
+      font-size: .7rem;
+      font-weight: 500;
+      padding: .18rem .5rem;
+      border-radius: 3px;
+    }
+    .tag-green { background: var(--sage-light); color: var(--sage-dim); }
+    .tag-amber { background: var(--amber-light); color: #7a4e1e; }
+    .tag-red   { background: var(--burgundy-light); color: var(--burgundy); }
+    .tag-grey  { background: var(--navy-light); color: var(--navy-dim); }
+    .review-feedback {
+      margin-top: .65rem;
+      font-size: .83rem;
+      color: var(--text-mid);
+      line-height: 1.6;
+      font-style: italic;
+      border-left: 2px solid var(--border);
+      padding-left: .75rem;
+    }
+    .no-reviews {
+      font-size: .84rem;
+      color: var(--text-subtle);
+      text-align: center;
+      padding: 2rem;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    .privacy-note {
+      font-size: .72rem;
+      color: var(--text-subtle);
+      margin-top: .75rem;
+      line-height: 1.55;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy);
+      color: #7a9bb8;
+      text-align: center;
+      padding: 1.75rem 1rem;
+      font-size: .78rem;
+      line-height: 1.7;
+    }
+    footer strong { color: #c0d6e8; }
+    footer a { color: #8fb4cc; text-decoration: none; }
+    footer a:hover { text-decoration: underline; color: #fff; }
+
+    @media (max-width: 600px) {
+      .form-card { padding: 1.25rem 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .cost-tier-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="crisis-banner" role="alert">
+  In crisis? Call or text <a href="tel:988">988</a> &nbsp;&middot;&nbsp;
+  Headrest 24h line: <a href="tel:6034484400">(603) 448-4400</a> &nbsp;&middot;&nbsp;
+  Text HOME to <a href="sms:741741">741741</a>
+</div>
+
+<header>
+  <div class="eyebrow">Upper Valley &mdash; New Hampshire &amp; Vermont</div>
+  <h1>Provider Reviews</h1>
+  <p>Share your experience to help others find the right care — and to improve the matching model.</p>
+  <a class="nav-back" href="index.html">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M10 3L5 8l5 5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back to finder
+  </a>
+</header>
+
+<main>
+<div class="container">
+
+  <div id="success-banner" class="success-banner">
+    <strong>Thank you for your review.</strong>
+    <p>Your experience has been recorded and will help train the matching model. You can submit another review below.</p>
+  </div>
+
+  <form id="review-form" novalidate>
+
+    <!-- ── Section 1: Provider ── -->
+    <div class="form-card">
+      <div class="card-title">Which provider did you visit?</div>
+      <div class="card-subtitle">Select the organization you received care from, or searched for.</div>
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="provider-select">Provider</label>
+          <select id="provider-select">
+            <option value="">-- Select a provider --</option>
+          </select>
+          <div class="field-error" id="err-provider">Please select a provider.</div>
+        </div>
+        <div class="form-group">
+          <label for="visit-year">Approximate year of visit</label>
+          <select id="visit-year">
+            <option value="">Prefer not to say</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022 or earlier</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="visit-type">Type of contact</label>
+          <select id="visit-type">
+            <option value="ongoing">Ongoing treatment</option>
+            <option value="intake">Intake / first visit only</option>
+            <option value="crisis">Crisis visit</option>
+            <option value="phone">Phone / telehealth only</option>
+            <option value="no_appointment">Could not get appointment</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 2: What you were looking for ── -->
+    <div class="form-card">
+      <div class="card-title">What were you searching for?</div>
+      <div class="card-subtitle">These details help the model understand whether the match was accurate — even if you didn't use the finder to find this provider.</div>
+
+      <div class="section-label">Location &amp; Coverage</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="r-zip">Your zip code</label>
+          <input type="text" id="r-zip" placeholder="e.g. 03766" maxlength="5">
+        </div>
+        <div class="form-group">
+          <label for="r-insurance">Insurance</label>
+          <select id="r-insurance">
+            <option value="any">Any / Don't know</option>
+            <option value="medicaid">Medicaid (NH or VT)</option>
+            <option value="medicare">Medicare</option>
+            <option value="bcbs">Blue Cross Blue Shield</option>
+            <option value="cigna">Cigna</option>
+            <option value="aetna">Aetna</option>
+            <option value="united">UnitedHealthcare</option>
+            <option value="tufts">Tufts Health Plan</option>
+            <option value="harvard_pilgrim">Harvard Pilgrim</option>
+            <option value="mvp">MVP Health Care (VT)</option>
+            <option value="va_benefits">VA Benefits</option>
+            <option value="sliding_scale">Sliding scale / self-pay</option>
+            <option value="uninsured">Uninsured</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="r-age">Age group</label>
+          <select id="r-age">
+            <option value="any">Any</option>
+            <option value="child">Child (under 13)</option>
+            <option value="teen">Teen (13–17)</option>
+            <option value="adult">Adult (18–64)</option>
+            <option value="older_adult">Older Adult (65+)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="r-telehealth">Telehealth</label>
+          <select id="r-telehealth">
+            <option value="any">No preference</option>
+            <option value="preferred">Preferred</option>
+            <option value="required">Required</option>
+            <option value="in_person">In-person only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="r-urgency">Urgency</label>
+          <select id="r-urgency">
+            <option value="exploring">Exploring options</option>
+            <option value="routine">Routine (within months)</option>
+            <option value="urgent">Urgent (within weeks)</option>
+            <option value="crisis">Crisis (immediate)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="r-format">Session format</label>
+          <select id="r-format">
+            <option value="any">No preference</option>
+            <option value="individual">Individual</option>
+            <option value="family">Family</option>
+            <option value="group">Group</option>
+            <option value="couples">Couples</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:1.25rem">Concerns</div>
+      <div class="pill-grid" id="r-concerns-pills"></div>
+
+      <div class="section-label" style="margin-top:1.25rem">Therapy approaches (optional)</div>
+      <div class="pill-grid" id="r-modalities-pills"></div>
+
+      <div class="section-label" style="margin-top:1.25rem">Cultural preferences (optional)</div>
+      <div class="pill-grid" id="r-cultural-pills"></div>
+    </div>
+
+    <!-- ── Section 3: Your Experience ── -->
+    <div class="form-card">
+      <div class="card-title">How did it go?</div>
+      <div class="card-subtitle">Your honest experience is what makes this data valuable.</div>
+
+      <!-- Star rating -->
+      <div class="section-label">Overall rating</div>
+      <div class="form-group">
+        <div class="star-row" id="star-row" role="radiogroup" aria-label="Star rating">
+          <button type="button" class="star-btn" data-val="1" aria-label="1 star">&#9733;</button>
+          <button type="button" class="star-btn" data-val="2" aria-label="2 stars">&#9733;</button>
+          <button type="button" class="star-btn" data-val="3" aria-label="3 stars">&#9733;</button>
+          <button type="button" class="star-btn" data-val="4" aria-label="4 stars">&#9733;</button>
+          <button type="button" class="star-btn" data-val="5" aria-label="5 stars">&#9733;</button>
+          <span class="star-label" id="star-label">Select a rating</span>
+        </div>
+        <div class="field-error" id="err-rating">Please select a star rating.</div>
+      </div>
+
+      <!-- Outcome questions -->
+      <div class="section-label" style="margin-top:1.25rem">Outcome questions</div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Did you get an appointment?</label>
+          <div class="toggle-group" id="got-appt-group">
+            <label class="toggle-opt" id="got-appt-yes"><input type="radio" name="got_appt" value="yes"> Yes</label>
+            <label class="toggle-opt" id="got-appt-no"><input type="radio" name="got_appt" value="no"> No</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Would you recommend this provider?</label>
+          <div class="toggle-group" id="recommend-group">
+            <label class="toggle-opt" id="recommend-yes"><input type="radio" name="recommend" value="yes"> Yes</label>
+            <label class="toggle-opt" id="recommend-no"><input type="radio" name="recommend" value="no"> No</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="wait-exp">Wait time vs. expectation</label>
+          <select id="wait-exp">
+            <option value="">Not applicable</option>
+            <option value="shorter">Shorter than expected</option>
+            <option value="as_expected">About as expected</option>
+            <option value="longer">Longer than expected</option>
+            <option value="never_seen">Was never seen</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="helpful-rating">How helpful was the care?</label>
+          <select id="helpful-rating">
+            <option value="">Not applicable / not seen</option>
+            <option value="5">Very helpful</option>
+            <option value="4">Somewhat helpful</option>
+            <option value="3">Neutral</option>
+            <option value="2">Somewhat unhelpful</option>
+            <option value="1">Not helpful at all</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Cost / Price section -->
+      <div class="section-label" style="margin-top:1.25rem">Cost &amp; Billing</div>
+      <div class="card-subtitle" style="margin-bottom:.85rem">Helps others understand what to expect financially. All figures are per session.</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="billing-method">How did you pay?</label>
+          <select id="billing-method">
+            <option value="">Prefer not to say</option>
+            <option value="insurance_full">Insurance covered in full</option>
+            <option value="insurance_copay">Insurance with copay</option>
+            <option value="sliding_scale">Sliding scale</option>
+            <option value="self_pay">Full self-pay (out of pocket)</option>
+            <option value="free">Free / no charge</option>
+            <option value="medicaid">Medicaid / fully covered</option>
+            <option value="va">VA benefits</option>
+            <option value="no_appt">Did not attend</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="copay-amount">Approximate out-of-pocket per session</label>
+          <select id="copay-amount">
+            <option value="">Not applicable / unknown</option>
+            <option value="0">$0 (free)</option>
+            <option value="1-20">$1 – $20</option>
+            <option value="21-50">$21 – $50</option>
+            <option value="51-100">$51 – $100</option>
+            <option value="101-150">$101 – $150</option>
+            <option value="151-200">$151 – $200</option>
+            <option value="200+">More than $200</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="billing-surprise">Any billing surprises?</label>
+          <select id="billing-surprise">
+            <option value="">Not applicable</option>
+            <option value="none">No — billed as expected</option>
+            <option value="lower">Lower than expected — pleasant surprise</option>
+            <option value="higher">Higher than expected</option>
+            <option value="denied">Insurance claim denied</option>
+            <option value="no_info">Could not get cost info upfront</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cost-barrier">Was cost a barrier to care?</label>
+          <select id="cost-barrier">
+            <option value="">Prefer not to say</option>
+            <option value="no">No — cost was manageable</option>
+            <option value="somewhat">Somewhat — stretched my budget</option>
+            <option value="yes">Yes — I had to limit or stop sessions</option>
+            <option value="prevented">Yes — I could not afford care at all</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Free text -->
+      <div class="section-label" style="margin-top:1.25rem">Written feedback (optional)</div>
+      <div class="form-group">
+        <label for="review-text">Your experience in your own words</label>
+        <textarea id="review-text" placeholder="What worked well? What could be improved? Any advice for someone searching for this kind of care?"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="submit-btn">Submit Review</button>
+        <button type="button" class="btn-secondary" id="reset-btn">Clear form</button>
+      </div>
+
+      <p class="privacy-note">
+        Reviews are submitted anonymously. No name, email, or identifying details are collected.
+        Provider ratings and cost data are used only to improve provider matching for others in the Upper Valley.
+      </p>
+    </div>
+
+  </form>
+
+  <!-- Recent reviews from localStorage -->
+  <div class="reviews-section">
+    <h2>Recent Reviews</h2>
+    <p class="section-desc">Submitted from this browser — visible locally for transparency.</p>
+    <div id="reviews-list"></div>
+  </div>
+
+</div>
+</main>
+
+<footer>
+  <strong>Upper Valley Mental Health Finder</strong><br>
+  Reviews are used only to improve provider matching and are never shared commercially.<br><br>
+  <strong>988</strong> Suicide &amp; Crisis Lifeline &nbsp;|&nbsp;
+  <strong>211</strong> NH/VT Social Services &nbsp;|&nbsp;
+  <a href="index.html">Back to Finder</a>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  SHARED CONSTANTS (mirror of index.html)
+// ═══════════════════════════════════════════════════
+
+const SUBMIT_ENDPOINT = 'https://script.google.com/macros/s/AKfycby1Ez0cseHM9vB9StZi8pctQbU6WDusJ38Z1WVlMtFUhCtFE7y7pp38Q3sX_6vczkVp/exec';
+
+const CONCERNS_LIST = [
+  { id: 'depression',        label: 'Depression' },
+  { id: 'anxiety',           label: 'Anxiety' },
+  { id: 'trauma',            label: 'Trauma & PTSD' },
+  { id: 'bipolar',           label: 'Bipolar Disorder' },
+  { id: 'schizophrenia',     label: 'Psychosis' },
+  { id: 'adhd',              label: 'ADHD' },
+  { id: 'ocd',               label: 'OCD' },
+  { id: 'eating_disorder',   label: 'Eating Disorder' },
+  { id: 'substance_use',     label: 'Substance Use' },
+  { id: 'suicidal_ideation', label: 'Suicidal Thoughts' },
+  { id: 'grief',             label: 'Grief & Loss' },
+  { id: 'family',            label: 'Family & Relationships' },
+  { id: 'lgbtq',             label: 'LGBTQ+ Issues' },
+  { id: 'veteran',           label: 'Veteran & Military' },
+  { id: 'chronic_illness',   label: 'Chronic Illness' },
+  { id: 'crisis',            label: 'Immediate Crisis' },
+];
+
+const MODALITIES_LIST = [
+  { id: 'cbt',          label: 'CBT' },
+  { id: 'dbt',          label: 'DBT' },
+  { id: 'emdr',         label: 'EMDR' },
+  { id: 'psychodynamic',label: 'Psychodynamic' },
+  { id: 'mi',           label: 'Motivational Interviewing' },
+  { id: 'act',          label: 'ACT' },
+  { id: 'somatic',      label: 'Somatic' },
+  { id: 'med_mgmt',     label: 'Medication Mgmt' },
+  { id: 'group',        label: 'Group Therapy' },
+  { id: 'family_tx',    label: 'Family Therapy' },
+];
+
+const CULTURAL_LIST = [
+  { id: 'lgbtq_affirming',  label: 'LGBTQ+ Affirming' },
+  { id: 'bipoc_provider',   label: 'BIPOC Provider' },
+  { id: 'veteran_friendly', label: 'Veteran-Friendly' },
+  { id: 'faith_based',      label: 'Faith-Based' },
+  { id: 'feminist',         label: 'Feminist Therapy' },
+  { id: 'bilingual',        label: 'Bilingual Staff' },
+];
+
+// Provider list (id + name only — full data only needed for scoring)
+const PROVIDERS = [
+  { id: 'wcbh',            name: 'West Central Behavioral Health',            insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','sliding_scale','uninsured'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','suicidal_ideation','grief','adhd','family','crisis'], modalities: ['cbt','dbt','mi','med_mgmt','group','family_tx'], languages: ['english','spanish'], providerGenders: ['woman','man','nonbinary'], formats: ['individual','family','group'], cultural: ['lgbtq_affirming','veteran_friendly','bilingual'], accessibility: ['wheelchair','transit','sliding_scale','walk_in'], zip: '03743' },
+  { id: 'dartmouth-bh',    name: 'Dartmouth Health Behavioral Health',        insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','tufts','harvard_pilgrim'], ageGroups: ['teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','ocd','eating_disorder','adhd','suicidal_ideation'], modalities: ['cbt','dbt','emdr','psychodynamic','med_mgmt','act'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: ['lgbtq_affirming'], accessibility: ['wheelchair','transit'], zip: '03766' },
+  { id: 'headrest',        name: 'Headrest Inc.',                             insurance: ['sliding_scale','uninsured'], ageGroups: ['teen','adult'], telehealth: false, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['substance_use','suicidal_ideation','depression','anxiety','crisis','grief'], modalities: ['mi','cbt'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: ['lgbtq_affirming'], accessibility: ['walk_in','sliding_scale','transit'], zip: '03766' },
+  { id: 'hcrs',            name: 'Health Care & Rehabilitation Services (HCRS)', insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale','uninsured'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','suicidal_ideation','family','grief','crisis'], modalities: ['cbt','dbt','mi','med_mgmt','group','family_tx','act'], languages: ['english'], providerGenders: ['woman','man','nonbinary'], formats: ['individual','family','group'], cultural: ['lgbtq_affirming','veteran_friendly'], accessibility: ['wheelchair','transit','sliding_scale','walk_in'], zip: '05001' },
+  { id: 'clara-martin',   name: 'Clara Martin Center',                       insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','family','grief','adhd'], modalities: ['cbt','dbt','mi','med_mgmt','group','family_tx'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','family','group'], cultural: ['lgbtq_affirming'], accessibility: ['wheelchair','sliding_scale'], zip: '05060' },
+  { id: 'gifford-bh',     name: 'Gifford Medical Center – Behavioral Health', insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','mvp'], ageGroups: ['adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','trauma','grief','chronic_illness','adhd'], modalities: ['cbt','psychodynamic','mi'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: [], accessibility: ['wheelchair','transit'], zip: '05060' },
+  { id: 'apd-bh',         name: 'Alice Peck Day Memorial Hospital – BH',     insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','tufts'], ageGroups: ['adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','grief','chronic_illness','family'], modalities: ['cbt','psychodynamic'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: [], accessibility: ['wheelchair','transit'], zip: '03766' },
+  { id: 'valley-regional',name: 'Valley Regional Hospital – Behavioral Health',insurance: ['medicaid','medicare','bcbs','cigna','aetna','united','sliding_scale'], ageGroups: ['teen','adult','older_adult'], telehealth: false, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['crisis','suicidal_ideation','depression','bipolar','schizophrenia'], modalities: ['med_mgmt'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: [], accessibility: ['wheelchair','walk_in'], zip: '03743' },
+  { id: 'wise',            name: 'WISE – Women\'s Information Service',        insurance: ['sliding_scale','uninsured'], ageGroups: ['teen','adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['trauma','depression','anxiety','family','crisis','lgbtq'], modalities: ['emdr','cbt','somatic','psychodynamic'], languages: ['english'], providerGenders: ['woman','nonbinary'], formats: ['individual','group'], cultural: ['lgbtq_affirming','feminist'], accessibility: ['transit','sliding_scale','walk_in'], zip: '03766' },
+  { id: 'cfs-nh',          name: 'Child and Family Services of NH',           insurance: ['medicaid','bcbs','cigna','sliding_scale','uninsured'], ageGroups: ['child','teen','adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','trauma','family','adhd','grief'], modalities: ['cbt','family_tx','psychodynamic'], languages: ['english','spanish'], providerGenders: ['woman','man'], formats: ['individual','family'], cultural: ['bilingual'], accessibility: ['transit','sliding_scale'], zip: '03766' },
+  { id: 'mascoma-chc',     name: 'Mascoma Community Health Center',           insurance: ['medicaid','medicare','bcbs','cigna','sliding_scale','uninsured'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','adhd','family','chronic_illness'], modalities: ['cbt','mi','med_mgmt'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','family'], cultural: [], accessibility: ['wheelchair','sliding_scale'], zip: '03741' },
+  { id: 'smcs',            name: 'Sullivan County Mental Health Services',    insurance: ['medicaid','sliding_scale','uninsured'], ageGroups: ['adult','older_adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','bipolar','schizophrenia','substance_use','crisis'], modalities: ['cbt','med_mgmt','mi'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','group'], cultural: [], accessibility: ['sliding_scale','transit'], zip: '03743' },
+  { id: 'ottauquechee',    name: 'Ottauquechee Health Center',                insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale','uninsured'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','family','chronic_illness','adhd'], modalities: ['cbt','mi'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','family'], cultural: [], accessibility: ['sliding_scale','wheelchair'], zip: '05091' },
+  { id: 'turning-points',  name: 'Turning Points Network',                   insurance: ['sliding_scale','uninsured'], ageGroups: ['adult'], telehealth: false, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['substance_use','depression','anxiety','trauma','family'], modalities: ['mi','cbt','group'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','group'], cultural: [], accessibility: ['sliding_scale','walk_in'], zip: '03743' },
+  { id: 'new-london-hosp', name: 'New London Hospital – BH Services',        insurance: ['medicaid','medicare','bcbs','cigna','aetna'], ageGroups: ['adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','grief','chronic_illness'], modalities: ['cbt','psychodynamic','med_mgmt'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: [], accessibility: ['wheelchair'], zip: '03257' },
+  { id: 'newport-health',  name: 'Newport Health Center',                    insurance: ['medicaid','medicare','bcbs','sliding_scale','uninsured'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','adhd','family','chronic_illness'], modalities: ['cbt','mi','med_mgmt'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','family'], cultural: [], accessibility: ['sliding_scale','wheelchair'], zip: '03773' },
+  { id: 'nami-nh',         name: 'NAMI New Hampshire',                       insurance: ['uninsured','sliding_scale'], ageGroups: ['teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','bipolar','schizophrenia','family'], modalities: ['group'], languages: ['english'], providerGenders: ['woman','man','nonbinary'], formats: ['group'], cultural: ['lgbtq_affirming'], accessibility: ['transit','sliding_scale'], zip: '03766' },
+  { id: 'recovery-vt',     name: 'Recovery Vermont',                         insurance: ['sliding_scale','uninsured'], ageGroups: ['adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['substance_use','depression','anxiety'], modalities: ['mi','group'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','group'], cultural: [], accessibility: ['transit','sliding_scale'], zip: '05001' },
+  { id: 'dartmouth-counsel',name: 'Dartmouth College Counseling Center',     insurance: ['uninsured','sliding_scale'], ageGroups: ['teen','adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','trauma','adhd','grief','family'], modalities: ['cbt','psychodynamic','act'], languages: ['english'], providerGenders: ['woman','man','nonbinary'], formats: ['individual','group'], cultural: ['lgbtq_affirming'], accessibility: ['sliding_scale','transit'], zip: '03755' },
+  { id: 'csac',            name: 'Counseling Service of Addison County',     insurance: ['medicaid','medicare','bcbs','mvp','sliding_scale','uninsured'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','trauma','bipolar','substance_use','family','adhd'], modalities: ['cbt','dbt','mi','med_mgmt','family_tx'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','family','group'], cultural: ['lgbtq_affirming'], accessibility: ['sliding_scale','wheelchair'], zip: '05753' },
+  { id: 'hanover-counsel', name: 'Hanover Counseling Associates',            insurance: ['bcbs','cigna','aetna','united','tufts'], ageGroups: ['adult','older_adult'], telehealth: true, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','trauma','ocd','grief','family','lgbtq'], modalities: ['cbt','emdr','psychodynamic','act','somatic'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','couples'], cultural: ['lgbtq_affirming'], accessibility: ['transit'], zip: '03755' },
+  { id: 'va-wrj',          name: 'VA Medical Center White River Junction',   insurance: ['va_benefits'], ageGroups: ['adult','older_adult'], telehealth: true, inPerson: true, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','trauma','substance_use','veteran','suicidal_ideation'], modalities: ['cbt','emdr','mi','med_mgmt','group'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual','group'], cultural: ['veteran_friendly'], accessibility: ['wheelchair','transit'], zip: '05009' },
+  { id: 'uv-haven',        name: 'Upper Valley Haven',                       insurance: ['uninsured','sliding_scale'], ageGroups: ['adult','older_adult'], telehealth: false, inPerson: true, crisisServices: false, acceptingNew: true, concerns: ['depression','anxiety','family','grief','chronic_illness'], modalities: ['cbt','mi'], languages: ['english'], providerGenders: ['woman','man'], formats: ['individual'], cultural: [], accessibility: ['walk_in','sliding_scale'], zip: '05009' },
+  { id: 'samhsa-helpline', name: 'SAMHSA National Helpline',                 insurance: ['uninsured','sliding_scale'], ageGroups: ['child','teen','adult','older_adult'], telehealth: true, inPerson: false, crisisServices: true, acceptingNew: true, concerns: ['depression','anxiety','trauma','bipolar','schizophrenia','substance_use','suicidal_ideation','crisis'], modalities: ['mi'], languages: ['english','spanish'], providerGenders: ['woman','man','nonbinary'], formats: ['individual'], cultural: ['bilingual'], accessibility: ['sliding_scale','walk_in'], zip: '00000' },
+];
+
+// Scoring weights (mirror of index.html)
+const WEIGHTS = {
+  insurance: 26, ageGroup: 18, concerns: 17, telehealth: 11,
+  urgency: 9, sessionFormat: 5, language: 4, providerGender: 3,
+  modalities: 4, cultural: 2, accessibility: 1,
+};
+
+// ═══════════════════════════════════════════════════
+//  SCORING BREAKDOWN (for ML training features)
+// ═══════════════════════════════════════════════════
+
+function computeBreakdown(providerId, filters) {
+  const p = PROVIDERS.find(x => x.id === providerId);
+  if (!p) return null;
+  const f = filters;
+  const bd = {};
+
+  let ins = 0;
+  if (!f.insurance || f.insurance === 'any') ins = 0.6;
+  else if (p.insurance.includes('any') || p.insurance.includes(f.insurance)) ins = 1.0;
+  else if (p.insurance.includes('sliding_scale') || p.insurance.includes('uninsured')) ins = 0.35;
+  bd.insuranceMatch = ins >= 1.0;
+  bd.insurancePartial = ins > 0 && ins < 1.0;
+
+  let age = 0;
+  if (!f.ageGroup || f.ageGroup === 'any') age = 0.7;
+  else if (p.ageGroups.includes(f.ageGroup)) age = 1.0;
+  bd.ageMatch = age >= 1.0;
+
+  let con = 0;
+  if (!f.concerns || f.concerns.length === 0) con = 0.5;
+  else {
+    const matched = f.concerns.filter(c => p.concerns.includes(c)).length;
+    con = matched / f.concerns.length;
+  }
+  bd.concernsOverlap = parseFloat(con.toFixed(2));
+
+  let tele = 0;
+  if (!f.telehealth || f.telehealth === 'any') tele = 0.6;
+  else if (f.telehealth === 'required') tele = p.telehealth ? 1.0 : 0.0;
+  else if (f.telehealth === 'preferred') tele = p.telehealth ? 1.0 : 0.35;
+  else if (f.telehealth === 'in_person') tele = p.inPerson ? 1.0 : 0.15;
+  bd.telehealthMatch = tele >= 1.0;
+
+  bd.languageMatch = !f.language || f.language === 'any' || (p.languages && p.languages.includes(f.language));
+  bd.genderMatch = !f.providerGender || f.providerGender === 'any' || (p.providerGenders && p.providerGenders.includes(f.providerGender));
+
+  let mod = 0;
+  if (!f.modalities || f.modalities.length === 0) mod = 0.5;
+  else if (!p.modalities || p.modalities.length === 0) mod = 0.3;
+  else {
+    const matched = f.modalities.filter(m => p.modalities.includes(m)).length;
+    mod = matched / f.modalities.length;
+  }
+  bd.modalityOverlap = parseFloat(mod.toFixed(2));
+
+  let cul = 0;
+  if (!f.cultural || f.cultural.length === 0) cul = 0.6;
+  else if (!p.cultural || p.cultural.length === 0) cul = 0.3;
+  else {
+    const matched = f.cultural.filter(c => p.cultural.includes(c)).length;
+    cul = matched / f.cultural.length;
+  }
+  bd.culturalOverlap = parseFloat(cul.toFixed(2));
+
+  // Compute rule-based score
+  let total = 0;
+  total += ins * WEIGHTS.insurance;
+  total += age * WEIGHTS.ageGroup;
+  total += con * WEIGHTS.concerns;
+  total += tele * WEIGHTS.telehealth;
+  const urg = (!f.urgency || f.urgency === 'exploring') ? 0.5 :
+    f.urgency === 'crisis' ? (p.crisisServices ? 1.0 : (p.acceptingNew ? 0.25 : 0.05)) :
+    f.urgency === 'urgent' ? (p.crisisServices ? 1.0 : (p.acceptingNew ? 0.8 : 0.2)) :
+    (p.acceptingNew ? 0.9 : 0.3);
+  total += urg * WEIGHTS.urgency;
+  const fmt = (!f.sessionFormat || f.sessionFormat === 'any') ? 0.6 :
+    (p.formats && p.formats.includes(f.sessionFormat)) ? 1.0 : 0.2;
+  total += fmt * WEIGHTS.sessionFormat;
+  const lang = (!f.language || f.language === 'any') ? 0.6 :
+    (p.languages && p.languages.includes(f.language)) ? 1.0 : 0.15;
+  total += lang * WEIGHTS.language;
+  const gen = (!f.providerGender || f.providerGender === 'any') ? 0.6 :
+    (p.providerGenders && p.providerGenders.includes(f.providerGender)) ? 1.0 : 0.1;
+  total += gen * WEIGHTS.providerGender;
+  total += mod * WEIGHTS.modalities;
+  total += cul * WEIGHTS.cultural;
+  const acc = (!f.accessibility || f.accessibility.length === 0) ? 0.6 :
+    (!p.accessibility || p.accessibility.length === 0) ? 0.3 :
+    f.accessibility.filter(a => p.accessibility.includes(a)).length / f.accessibility.length;
+  total += acc * WEIGHTS.accessibility;
+
+  const maxScore = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
+  bd.score = Math.min(99, Math.max(1, Math.round((total / maxScore) * 100)));
+
+  return bd;
+}
+
+// ═══════════════════════════════════════════════════
+//  REMOTE SUBMISSION
+// ═══════════════════════════════════════════════════
+
+async function submitData(payload) {
+  if (!SUBMIT_ENDPOINT) return;
+  try {
+    await fetch(SUBMIT_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, ts: new Date().toISOString() }),
+    });
+  } catch (_) {}
+}
+
+// ═══════════════════════════════════════════════════
+//  LOCAL STORAGE
+// ═══════════════════════════════════════════════════
+
+function saveReview(record) {
+  const key = 'uv_mh_reviews';
+  const existing = JSON.parse(localStorage.getItem(key) || '[]');
+  existing.unshift(record); // newest first
+  if (existing.length > 50) existing.length = 50;
+  localStorage.setItem(key, JSON.stringify(existing));
+}
+
+function loadReviews() {
+  return JSON.parse(localStorage.getItem('uv_mh_reviews') || '[]');
+}
+
+// ═══════════════════════════════════════════════════
+//  PILL BUILDER
+// ═══════════════════════════════════════════════════
+
+function buildPills(containerId, list, colorClass) {
+  const container = document.getElementById(containerId);
+  list.forEach(({ id, label }) => {
+    const lbl = document.createElement('label');
+    lbl.className = 'pill';
+    lbl.innerHTML = `<input type="checkbox" value="${id}"> ${label}`;
+    lbl.addEventListener('click', () => {
+      const cb = lbl.querySelector('input');
+      requestAnimationFrame(() => {
+        lbl.classList.toggle(colorClass || 'selected', cb.checked);
+      });
+    });
+    container.appendChild(lbl);
+  });
+}
+
+function getChecked(containerId) {
+  return [...document.querySelectorAll(`#${containerId} input:checked`)].map(i => i.value);
+}
+
+// ═══════════════════════════════════════════════════
+//  STAR RATING
+// ═══════════════════════════════════════════════════
+
+let selectedRating = 0;
+const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+
+function initStars() {
+  const stars = document.querySelectorAll('.star-btn');
+  const lbl = document.getElementById('star-label');
+  stars.forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      const v = parseInt(btn.dataset.val);
+      stars.forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= v));
+      lbl.textContent = starLabels[v];
+    });
+    btn.addEventListener('mouseleave', () => {
+      stars.forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= selectedRating));
+      lbl.textContent = selectedRating ? starLabels[selectedRating] : 'Select a rating';
+    });
+    btn.addEventListener('click', () => {
+      selectedRating = parseInt(btn.dataset.val);
+      stars.forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= selectedRating));
+      lbl.textContent = starLabels[selectedRating];
+      document.getElementById('err-rating').classList.remove('show');
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  TOGGLE BUTTONS (yes/no)
+// ═══════════════════════════════════════════════════
+
+function initToggle(groupId, yesId, noId, yesClass, noClass) {
+  const yesEl = document.getElementById(yesId);
+  const noEl  = document.getElementById(noId);
+  const inputs = document.querySelectorAll(`#${groupId} input`);
+  inputs.forEach(inp => {
+    inp.addEventListener('change', () => {
+      yesEl.className = 'toggle-opt' + (inp.value === 'yes' && inp.checked ? ` ${yesClass}` : '');
+      noEl.className  = 'toggle-opt' + (inp.value === 'no'  && inp.checked ? ` ${noClass}`  : '');
+    });
+  });
+}
+
+function getToggleValue(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : null;
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER REVIEWS
+// ═══════════════════════════════════════════════════
+
+function renderStars(n) {
+  return Array.from({ length: 5 }, (_, i) => i < n ? '★' : '☆').join('');
+}
+
+function renderReviews() {
+  const list = loadReviews();
+  const container = document.getElementById('reviews-list');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="no-reviews">No reviews yet — be the first to submit one.</div>';
+    return;
+  }
+  container.innerHTML = list.map(r => {
+    const providerName = (PROVIDERS.find(p => p.id === r.providerId) || {}).name || r.providerId;
+    const dateStr = r.ts ? new Date(r.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const tags = [];
+    if (r.gotAppointment === 'yes')  tags.push(['Got appointment', 'tag-green']);
+    if (r.gotAppointment === 'no')   tags.push(['No appointment', 'tag-red']);
+    if (r.recommend === 'yes')       tags.push(['Recommends', 'tag-green']);
+    if (r.recommend === 'no')        tags.push(['Does not recommend', 'tag-red']);
+    if (r.billingMethod === 'insurance_full') tags.push(['Insurance covered', 'tag-green']);
+    if (r.billingMethod === 'free')  tags.push(['Free', 'tag-green']);
+    if (r.billingMethod === 'sliding_scale') tags.push(['Sliding scale', 'tag-amber']);
+    if (r.costBarrier === 'yes' || r.costBarrier === 'prevented') tags.push(['Cost barrier', 'tag-red']);
+    if (r.copayAmount) tags.push([`~${r.copayAmount}/session`, 'tag-grey']);
+
+    const tagHtml = tags.map(([t, cls]) => `<span class="review-tag ${cls}">${t}</span>`).join('');
+    const feedbackHtml = r.feedback
+      ? `<div class="review-feedback">&ldquo;${r.feedback}&rdquo;</div>`
+      : '';
+
+    return `
+      <div class="review-card">
+        <div class="review-card-top">
+          <div>
+            <div class="review-provider-name">${providerName}</div>
+            <div class="review-meta">${dateStr}${r.visitType ? ' &middot; ' + r.visitType.replace('_', ' ') : ''}</div>
+          </div>
+          <div class="review-stars">${renderStars(r.rating || 0)}</div>
+        </div>
+        ${tags.length ? `<div class="review-tags">${tagHtml}</div>` : ''}
+        ${feedbackHtml}
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  FORM SUBMISSION
+// ═══════════════════════════════════════════════════
+
+document.getElementById('review-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const providerId = document.getElementById('provider-select').value;
+  let valid = true;
+
+  if (!providerId) {
+    document.getElementById('err-provider').classList.add('show');
+    document.getElementById('provider-select').classList.add('error');
+    valid = false;
+  }
+  if (!selectedRating) {
+    document.getElementById('err-rating').classList.add('show');
+    valid = false;
+  }
+  if (!valid) {
+    document.querySelector('.field-error.show')
+      ?.closest('.form-card')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const filters = {
+    zip:            document.getElementById('r-zip').value.trim(),
+    insurance:      document.getElementById('r-insurance').value,
+    ageGroup:       document.getElementById('r-age').value,
+    telehealth:     document.getElementById('r-telehealth').value,
+    urgency:        document.getElementById('r-urgency').value,
+    sessionFormat:  document.getElementById('r-format').value,
+    language:       'english',
+    providerGender: 'any',
+    concerns:       getChecked('r-concerns-pills'),
+    modalities:     getChecked('r-modalities-pills'),
+    cultural:       getChecked('r-cultural-pills'),
+    accessibility:  [],
+  };
+
+  const bd = computeBreakdown(providerId, filters) || {};
+
+  const record = {
+    ts:              new Date().toISOString(),
+    type:            'review',
+    providerId,
+    rating:          selectedRating,
+    score:           bd.score || null,
+    // ML features
+    insuranceMatch:  bd.insuranceMatch  || false,
+    insurancePartial:bd.insurancePartial|| false,
+    ageMatch:        bd.ageMatch        || false,
+    concernsOverlap: bd.concernsOverlap || 0,
+    telehealthMatch: bd.telehealthMatch || false,
+    languageMatch:   bd.languageMatch   !== false,
+    genderMatch:     bd.genderMatch     !== false,
+    modalityOverlap: bd.modalityOverlap || 0,
+    culturalOverlap: bd.culturalOverlap || 0,
+    // Outcome fields
+    visitType:       document.getElementById('visit-type').value,
+    visitYear:       document.getElementById('visit-year').value,
+    gotAppointment:  getToggleValue('got_appt'),
+    recommend:       getToggleValue('recommend'),
+    waitExperience:  document.getElementById('wait-exp').value,
+    helpfulRating:   document.getElementById('helpful-rating').value,
+    // Cost fields
+    billingMethod:   document.getElementById('billing-method').value,
+    copayAmount:     document.getElementById('copay-amount').value,
+    billingSurprise: document.getElementById('billing-surprise').value,
+    costBarrier:     document.getElementById('cost-barrier').value,
+    // Free text
+    feedback:        document.getElementById('review-text').value.trim(),
+    filters,
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  saveReview(record);
+  await submitData(record);
+
+  btn.disabled = false;
+  btn.textContent = 'Submit Review';
+
+  document.getElementById('success-banner').classList.add('show');
+  document.getElementById('success-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Reset form
+  document.getElementById('review-form').reset();
+  selectedRating = 0;
+  document.querySelectorAll('.star-btn').forEach(s => s.classList.remove('lit'));
+  document.getElementById('star-label').textContent = 'Select a rating';
+  document.querySelectorAll('.pill.selected, .pill.selected-green').forEach(p => {
+    p.classList.remove('selected', 'selected-green');
+  });
+  document.querySelectorAll('.toggle-opt').forEach(t => {
+    t.className = 'toggle-opt';
+  });
+  document.getElementById('provider-select').classList.remove('error');
+
+  renderReviews();
+});
+
+// ═══════════════════════════════════════════════════
+//  RESET BUTTON
+// ═══════════════════════════════════════════════════
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('review-form').reset();
+  selectedRating = 0;
+  document.querySelectorAll('.star-btn').forEach(s => s.classList.remove('lit'));
+  document.getElementById('star-label').textContent = 'Select a rating';
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected', 'selected-green'));
+  document.querySelectorAll('.toggle-opt').forEach(t => t.className = 'toggle-opt');
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('input.error, select.error').forEach(e => e.classList.remove('error'));
+  document.getElementById('success-banner').classList.remove('show');
+});
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+
+(function init() {
+  // Populate provider dropdown
+  const sel = document.getElementById('provider-select');
+  PROVIDERS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+
+  // Clear error on change
+  sel.addEventListener('change', () => {
+    document.getElementById('err-provider').classList.remove('show');
+    sel.classList.remove('error');
+  });
+
+  // Build pill grids
+  buildPills('r-concerns-pills',  CONCERNS_LIST,  'selected');
+  buildPills('r-modalities-pills', MODALITIES_LIST, 'selected-green');
+  buildPills('r-cultural-pills',  CULTURAL_LIST,  'selected-green');
+
+  // Stars
+  initStars();
+
+  // Yes/No toggles
+  initToggle('got-appt-group',   'got-appt-yes', 'got-appt-no',   'yes-selected', 'no-selected');
+  initToggle('recommend-group',  'recommend-yes', 'recommend-no',  'yes-selected', 'no-selected');
+
+  // Render existing reviews
+  renderReviews();
+})();
+</script>
+</body>
+</html>
