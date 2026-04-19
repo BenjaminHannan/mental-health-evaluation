@@ -457,6 +457,28 @@ def run_experiment(
     return save_payload
 
 
+def load_raw_plus_temporal_features() -> pd.DataFrame:
+    """Merge raw linguistic features with temporal posting-behaviour features."""
+    raw  = pd.read_parquet(FEATURES_IN)
+    temp = pd.read_parquet(DATA_DIR / "features_temporal.parquet")
+    drop = {"label", "low_confidence", "n_posts", "tp_date"}
+    temp = temp.drop(columns=[c for c in drop if c in temp.columns])
+    return raw.merge(temp, on="author", how="inner")
+
+
+def load_all_features() -> pd.DataFrame:
+    """Merge raw + znorm + temporal features on author (kitchen-sink run)."""
+    raw  = pd.read_parquet(FEATURES_IN)
+    zn   = pd.read_parquet(DATA_DIR / "features_znorm.parquet")
+    temp = pd.read_parquet(DATA_DIR / "features_temporal.parquet")
+    drop = {"label", "low_confidence", "n_posts", "tp_date"}
+    zn   = zn.drop(columns=[c for c in drop if c in zn.columns])
+    temp = temp.drop(columns=[c for c in drop if c in temp.columns])
+    merged = raw.merge(zn, on="author", how="inner")
+    merged = merged.merge(temp, on="author", how="inner")
+    return merged
+
+
 def load_combined_features() -> pd.DataFrame:
     """Merge raw + z-norm feature parquets on author.
 
@@ -518,8 +540,14 @@ def main() -> None:
     parser.add_argument("--deltas",   action="store_true",
                         help="Shortcut: run on delta + presence flags only "
                              "(ablation for within-user change signal)")
+    parser.add_argument("--temporal", action="store_true",
+                        help="Shortcut: run on raw+temporal merged features")
+    parser.add_argument("--kitchen-sink", dest="kitchen_sink",
+                        action="store_true",
+                        help="Shortcut: run on raw+znorm+temporal merged features")
     parser.add_argument("--all",      action="store_true",
-                        help="Run raw, znorm, combined, and deltas side-by-side")
+                        help="Run all variants (raw, znorm, deltas, "
+                             "combined, temporal, kitchen_sink) side-by-side")
     args = parser.parse_args()
 
     if args.all:
@@ -549,6 +577,24 @@ def main() -> None:
             label="deltas",
             feature_cols=DELTA_COLS + PRESENCE_COLS,
         )
+        temp_df = load_raw_plus_temporal_features()
+        temp_cols = discover_feature_cols(build_presence_flags(temp_df))
+        experiments["temporal"] = run_experiment(
+            None,
+            DATA_DIR / "model_results_temporal.json",
+            label="temporal",
+            df=temp_df,
+            feature_cols=temp_cols,
+        )
+        all_df = load_all_features()
+        all_cols = discover_feature_cols(build_presence_flags(all_df))
+        experiments["kitchen_sink"] = run_experiment(
+            None,
+            DATA_DIR / "model_results_kitchen_sink.json",
+            label="kitchen_sink",
+            df=all_df,
+            feature_cols=all_cols,
+        )
         print_experiment_comparison(experiments)
         return
 
@@ -558,6 +604,30 @@ def main() -> None:
             DATA_DIR / "model_results_deltas.json",
             label="deltas",
             feature_cols=DELTA_COLS + PRESENCE_COLS,
+        )
+        return
+
+    if args.temporal:
+        temp_df = load_raw_plus_temporal_features()
+        temp_cols = discover_feature_cols(build_presence_flags(temp_df))
+        run_experiment(
+            None,
+            DATA_DIR / "model_results_temporal.json",
+            label="temporal",
+            df=temp_df,
+            feature_cols=temp_cols,
+        )
+        return
+
+    if args.kitchen_sink:
+        all_df = load_all_features()
+        all_cols = discover_feature_cols(build_presence_flags(all_df))
+        run_experiment(
+            None,
+            DATA_DIR / "model_results_kitchen_sink.json",
+            label="kitchen_sink",
+            df=all_df,
+            feature_cols=all_cols,
         )
         return
 
