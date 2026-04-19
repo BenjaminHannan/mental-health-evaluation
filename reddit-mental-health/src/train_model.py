@@ -515,8 +515,11 @@ def main() -> None:
                         help="Shortcut: run on features_znorm.parquet")
     parser.add_argument("--combined", action="store_true",
                         help="Shortcut: run on merged raw+znorm features")
+    parser.add_argument("--deltas",   action="store_true",
+                        help="Shortcut: run on delta + presence flags only "
+                             "(ablation for within-user change signal)")
     parser.add_argument("--all",      action="store_true",
-                        help="Run raw, znorm, and combined side-by-side")
+                        help="Run raw, znorm, combined, and deltas side-by-side")
     args = parser.parse_args()
 
     if args.all:
@@ -540,7 +543,22 @@ def main() -> None:
             df=combined_df,
             feature_cols=combined_cols,
         )
+        experiments["deltas"] = run_experiment(
+            FEATURES_IN,
+            DATA_DIR / "model_results_deltas.json",
+            label="deltas",
+            feature_cols=DELTA_COLS + PRESENCE_COLS,
+        )
         print_experiment_comparison(experiments)
+        return
+
+    if args.deltas:
+        run_experiment(
+            FEATURES_IN,
+            DATA_DIR / "model_results_deltas.json",
+            label="deltas",
+            feature_cols=DELTA_COLS + PRESENCE_COLS,
+        )
         return
 
     if args.combined:
