@@ -466,16 +466,30 @@ def load_raw_plus_temporal_features() -> pd.DataFrame:
     return raw.merge(temp, on="author", how="inner")
 
 
+def load_raw_plus_mentalbert_features() -> pd.DataFrame:
+    """Merge raw linguistic features with MentalBERT semantic-shift features."""
+    raw = pd.read_parquet(FEATURES_IN)
+    mb  = pd.read_parquet(DATA_DIR / "features_mentalbert.parquet")
+    drop = {"label", "low_confidence", "n_posts", "tp_date"}
+    mb   = mb.drop(columns=[c for c in drop if c in mb.columns])
+    return raw.merge(mb, on="author", how="inner")
+
+
 def load_all_features() -> pd.DataFrame:
-    """Merge raw + znorm + temporal features on author (kitchen-sink run)."""
+    """Merge raw+znorm+temporal+mentalbert features on author (kitchen-sink run)."""
     raw  = pd.read_parquet(FEATURES_IN)
     zn   = pd.read_parquet(DATA_DIR / "features_znorm.parquet")
     temp = pd.read_parquet(DATA_DIR / "features_temporal.parquet")
+    mb_path = DATA_DIR / "features_mentalbert.parquet"
     drop = {"label", "low_confidence", "n_posts", "tp_date"}
     zn   = zn.drop(columns=[c for c in drop if c in zn.columns])
     temp = temp.drop(columns=[c for c in drop if c in temp.columns])
     merged = raw.merge(zn, on="author", how="inner")
     merged = merged.merge(temp, on="author", how="inner")
+    if mb_path.exists():
+        mb = pd.read_parquet(mb_path)
+        mb = mb.drop(columns=[c for c in drop if c in mb.columns])
+        merged = merged.merge(mb, on="author", how="inner")
     return merged
 
 
@@ -542,9 +556,11 @@ def main() -> None:
                              "(ablation for within-user change signal)")
     parser.add_argument("--temporal", action="store_true",
                         help="Shortcut: run on raw+temporal merged features")
+    parser.add_argument("--mentalbert", action="store_true",
+                        help="Shortcut: run on raw+mentalbert merged features")
     parser.add_argument("--kitchen-sink", dest="kitchen_sink",
                         action="store_true",
-                        help="Shortcut: run on raw+znorm+temporal merged features")
+                        help="Shortcut: run on raw+znorm+temporal+mentalbert merged features")
     parser.add_argument("--all",      action="store_true",
                         help="Run all variants (raw, znorm, deltas, "
                              "combined, temporal, kitchen_sink) side-by-side")
@@ -586,6 +602,15 @@ def main() -> None:
             df=temp_df,
             feature_cols=temp_cols,
         )
+        mb_df = load_raw_plus_mentalbert_features()
+        mb_cols = discover_feature_cols(build_presence_flags(mb_df))
+        experiments["mentalbert"] = run_experiment(
+            None,
+            DATA_DIR / "model_results_mentalbert.json",
+            label="mentalbert",
+            df=mb_df,
+            feature_cols=mb_cols,
+        )
         all_df = load_all_features()
         all_cols = discover_feature_cols(build_presence_flags(all_df))
         experiments["kitchen_sink"] = run_experiment(
@@ -616,6 +641,18 @@ def main() -> None:
             label="temporal",
             df=temp_df,
             feature_cols=temp_cols,
+        )
+        return
+
+    if args.mentalbert:
+        mb_df = load_raw_plus_mentalbert_features()
+        mb_cols = discover_feature_cols(build_presence_flags(mb_df))
+        run_experiment(
+            None,
+            DATA_DIR / "model_results_mentalbert.json",
+            label="mentalbert",
+            df=mb_df,
+            feature_cols=mb_cols,
         )
         return
 

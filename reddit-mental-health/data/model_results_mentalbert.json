@@ -1,0 +1,189 @@
+{
+  "label": "mentalbert",
+  "results": {
+    "LogReg": {
+      "full": {
+        "per_class": {
+          "crisis": {
+            "precision": 0.1849,
+            "recall": 0.3699,
+            "f1": 0.2466,
+            "roc_auc": 0.565,
+            "support": 73
+          },
+          "neither": {
+            "precision": 0.8451,
+            "recall": 0.559,
+            "f1": 0.6729,
+            "roc_auc": 0.6488,
+            "support": 449
+          },
+          "recovery": {
+            "precision": 0.1449,
+            "recall": 0.339,
+            "f1": 0.203,
+            "roc_auc": 0.657,
+            "support": 59
+          }
+        },
+        "macro": {
+          "precision": 0.3917,
+          "recall": 0.4226,
+          "f1": 0.3742,
+          "roc_auc": 0.6236
+        },
+        "weighted": {
+          "precision": 0.6911,
+          "recall": 0.5129,
+          "f1": 0.5716
+        }
+      },
+      "high_conf": {
+        "per_class": {
+          "crisis": {
+            "precision": 0.1946,
+            "recall": 0.3973,
+            "f1": 0.2613,
+            "roc_auc": 0.5535,
+            "support": 73
+          },
+          "neither": {
+            "precision": 0.8818,
+            "recall": 0.5813,
+            "f1": 0.7007,
+            "roc_auc": 0.6382,
+            "support": 449
+          },
+          "recovery": {
+            "precision": 0.0485,
+            "recall": 0.1923,
+            "f1": 0.0775,
+            "roc_auc": 0.5885,
+            "support": 26
+          }
+        },
+        "macro": {
+          "precision": 0.375,
+          "recall": 0.3903,
+          "f1": 0.3465,
+          "roc_auc": 0.5934
+        },
+        "weighted": {
+          "precision": 0.7507,
+          "recall": 0.5383,
+          "f1": 0.6126
+        }
+      }
+    },
+    "RandForest": {
+      "full": {
+        "per_class": {
+          "crisis": {
+            "precision": 0.1,
+            "recall": 0.0137,
+            "f1": 0.0241,
+            "roc_auc": 0.5728,
+            "support": 73
+          },
+          "neither": {
+            "precision": 0.7871,
+            "recall": 0.98,
+            "f1": 0.873,
+            "roc_auc": 0.6571,
+            "support": 449
+          },
+          "recovery": {
+            "precision": 0.5,
+            "recall": 0.1017,
+            "f1": 0.169,
+            "roc_auc": 0.6567,
+            "support": 59
+          }
+        },
+        "macro": {
+          "precision": 0.4624,
+          "recall": 0.3651,
+          "f1": 0.3554,
+          "roc_auc": 0.6289
+        },
+        "weighted": {
+          "precision": 0.6716,
+          "recall": 0.7694,
+          "f1": 0.6949
+        }
+      },
+      "high_conf": {
+        "per_class": {
+          "crisis": {
+            "precision": 0.375,
+            "recall": 0.0411,
+            "f1": 0.0741,
+            "roc_auc": 0.5986,
+            "support": 73
+          },
+          "neither": {
+            "precision": 0.8222,
+            "recall": 0.9889,
+            "f1": 0.8979,
+            "roc_auc": 0.6098,
+            "support": 449
+          },
+          "recovery": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.5333,
+            "support": 26
+          }
+        },
+        "macro": {
+          "precision": 0.3991,
+          "recall": 0.3433,
+          "f1": 0.324,
+          "roc_auc": 0.5806
+        },
+        "weighted": {
+          "precision": 0.7236,
+          "recall": 0.8157,
+          "f1": 0.7455
+        }
+      }
+    }
+  },
+  "feature_importance": {
+    "feature": [
+      "ttr_baseline",
+      "sentiment_mean_pre_4w",
+      "sentiment_mean_baseline",
+      "avg_post_len_baseline",
+      "post_freq_delta_pre_4w",
+      "fp_pronoun_rate_baseline",
+      "ttr_delta_pre_4w",
+      "avg_sent_len_pre_2w",
+      "sentiment_mean_delta_pre_2w",
+      "post_freq_baseline",
+      "avg_sent_len_pre_4w",
+      "ttr_delta_pre_2w",
+      "post_freq_delta_pre_2w",
+      "sentiment_mean_delta_pre_4w",
+      "avg_sent_len_delta_pre_4w"
+    ],
+    "importance": [
+      0.050039,
+      0.036818,
+      0.032823,
+      0.031465,
+      0.029781,
+      0.029513,
+      0.027966,
+      0.025694,
+      0.025499,
+      0.024933,
+      0.023419,
+      0.023199,
+      0.023017,
+      0.022887,
+      0.022601
+    ]
+  }
+}
