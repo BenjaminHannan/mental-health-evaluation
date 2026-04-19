@@ -42,10 +42,11 @@ import numpy as np
 import pandas as pd
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-DATA_DIR       = Path(__file__).resolve().parent.parent / "data"
-LABELS_IN      = DATA_DIR / "user_labels.parquet"
-TIMELINES_IN   = DATA_DIR / "user_timelines.parquet"
-FEATURES_OUT   = DATA_DIR / "features.parquet"
+DATA_DIR         = Path(__file__).resolve().parent.parent / "data"
+LABELS_IN        = DATA_DIR / "user_labels.parquet"
+TIMELINES_IN     = DATA_DIR / "user_timelines.parquet"
+FEATURES_OUT     = DATA_DIR / "features.parquet"
+FEATURES_ZNORM_OUT = DATA_DIR / "features_znorm.parquet"
 
 # Window definitions: (label, weeks_before_tp)
 # "baseline" is open-ended (all posts older than WINDOW_WEEKS before TP)
@@ -232,6 +233,115 @@ FEATURE_NAMES = [
 
 # ── Per-user feature extraction ────────────────────────────────────────────
 
+# ── Per-user z-normalisation helpers ───────────────────────────────────────
+
+def _weekly_baseline_buckets(
+    user_posts: pd.DataFrame,
+    baseline_end: pd.Timestamp,
+) -> list[pd.DataFrame]:
+    """Split a user's baseline period into non-overlapping 1-week buckets.
+
+    Buckets are anchored to ``baseline_end`` (exclusive) and extend
+    backwards in time. Only non-empty buckets are returned.
+    """
+    baseline_posts = user_posts[user_posts["created_utc"] < baseline_end]
+    if baseline_posts.empty:
+        return []
+    earliest = baseline_posts["created_utc"].min()
+    buckets: list[pd.DataFrame] = []
+    ts = baseline_end
+    while ts > earliest:
+        window_start = ts - pd.Timedelta(weeks=1)
+        mask = (baseline_posts["created_utc"] >= window_start) & \
+               (baseline_posts["created_utc"] < ts)
+        bucket = baseline_posts.loc[mask]
+        if not bucket.empty:
+            buckets.append(bucket)
+        ts = window_start
+    return buckets
+
+
+def _compute_user_baseline_stats(
+    user_posts: pd.DataFrame,
+    tp_date: pd.Timestamp,
+) -> dict[str, tuple[float, float, int]]:
+    """Return per-feature (mean, std, n_buckets) from weekly baseline buckets.
+
+    A std of NaN indicates fewer than 2 usable buckets -- downstream
+    z-scores for that feature become NaN and are median-imputed.
+    """
+    baseline_end = tp_date - pd.Timedelta(weeks=WINDOW_WEEKS)
+    buckets      = _weekly_baseline_buckets(user_posts, baseline_end)
+
+    # For each bucket, compute all 7 features (window_weeks=1)
+    bucket_feats: list[dict[str, float]] = [
+        extract_window_features(b, window_weeks=1.0) for b in buckets
+    ]
+
+    stats: dict[str, tuple[float, float, int]] = {}
+    for feat in FEATURE_NAMES:
+        vals = np.array([bf[feat] for bf in bucket_feats
+                         if not np.isnan(bf.get(feat, float("nan")))])
+        if len(vals) >= 2:
+            stats[feat] = (float(vals.mean()), float(vals.std(ddof=1)), len(vals))
+        elif len(vals) == 1:
+            stats[feat] = (float(vals[0]), float("nan"), 1)
+        else:
+            stats[feat] = (float("nan"), float("nan"), 0)
+    return stats
+
+
+def build_feature_row_znorm(
+    author: str,
+    user_posts: pd.DataFrame,
+    label_row: pd.Series,
+) -> dict:
+    """Build a z-normalised feature row for one user.
+
+    Each pre-window feature value is standardised by subtracting the
+    user's own baseline mean and dividing by the baseline std, computed
+    over weekly sub-windows of their baseline period. The output
+    columns are ``<feature>_znorm_<window>`` for window in
+    {pre_4w, pre_2w, pre_1w}. Users with fewer than 2 baseline buckets
+    get NaN z-scores (imputed downstream).
+    """
+    tp_date = label_row["tp_date"]
+    if pd.isnull(tp_date):
+        tp_date = user_posts["created_utc"].max()
+
+    row: dict = {
+        "author":           author,
+        "label":            label_row["label"],
+        "low_confidence":   label_row["low_confidence"],
+        "n_posts":          len(user_posts),
+        "tp_date":          label_row["tp_date"],
+    }
+
+    stats = _compute_user_baseline_stats(user_posts, tp_date)
+    row["n_baseline_buckets"] = max((v[2] for v in stats.values()), default=0)
+
+    # Extract raw window values then z-score them
+    for win_name, win_weeks in WINDOWS:
+        if win_name == "baseline":
+            continue        # no z-norm on baseline itself (it's the reference)
+        win_posts = _window_posts(user_posts, tp_date, win_name)
+        feats     = extract_window_features(win_posts, win_weeks)
+        for feat, val in feats.items():
+            mean, std, _ = stats.get(feat, (float("nan"), float("nan"), 0))
+            if std is not None and not np.isnan(std) and std > 0:
+                z = (val - mean) / std
+            else:
+                z = float("nan")
+            row[f"{feat}_znorm_{win_name}"] = z
+
+    # Presence flags (same as raw features — always informative)
+    for win in ("pre_4w", "pre_2w", "pre_1w"):
+        win_posts = _window_posts(user_posts, tp_date, win)
+        row[f"has_posts_{win}"] = float(len(win_posts) > 0)
+
+    return row
+
+
 def build_feature_row(
     author: str,
     user_posts: pd.DataFrame,
@@ -323,22 +433,41 @@ def print_summary(features: pd.DataFrame) -> None:
           f"(labelled: {n_labelled}, low_confidence: {n_low_conf})")
 
 
-def main() -> None:
-    """Run stage 3: extract features and save the feature matrix."""
-    print("[extract_features] Loading labels and timelines...")
-    user_labels    = pd.read_parquet(LABELS_IN)
-    user_timelines = pd.read_parquet(TIMELINES_IN)
+def print_znorm_summary(features: pd.DataFrame) -> None:
+    """Mean z-score by label x window for sentiment + key features."""
+    labels  = ["crisis", "recovery", "neither"]
+    windows = ["pre_4w", "pre_2w", "pre_1w"]
+    print("\n===== Mean z-scores (user-centred) by label x window =====\n")
+    for feat in FEATURE_NAMES:
+        cols = [f"{feat}_znorm_{w}" for w in windows]
+        if not all(c in features.columns for c in cols):
+            continue
+        print(f"  {feat}")
+        header = f"    {'label':<12}" + "".join(f"{w:>12}" for w in windows)
+        print(header)
+        print("    " + "-" * (12 + 12 * len(windows)))
+        for lbl in labels:
+            subset = features[features["label"] == lbl][cols]
+            means  = subset.mean()
+            vals   = "".join(f"{means[c]:>12.4f}" for c in cols)
+            print(f"    {lbl:<12}{vals}")
+        print()
 
-    # Add low_confidence flag and save back to user_labels.parquet
-    user_labels = flag_low_confidence(user_labels)
-    user_labels.to_parquet(LABELS_IN, index=False)
-    print(f"[extract_features] Updated {LABELS_IN} with low_confidence flag")
+    # How many users have well-defined z-scores (>=2 baseline buckets)?
+    n_well_defined = (features["n_baseline_buckets"] >= 2).sum()
+    print(f"  Users with >=2 baseline buckets: {n_well_defined}/{len(features)}")
+    print(f"  Median baseline buckets per user: "
+          f"{int(features['n_baseline_buckets'].median())}")
 
+
+def run_raw_mode(user_labels: pd.DataFrame,
+                 user_timelines: pd.DataFrame) -> None:
+    """Standard raw + delta feature extraction (original pipeline)."""
     labels_idx = user_labels.set_index("author")
     grouped    = user_timelines.groupby("author", sort=False)
     total      = len(grouped)
 
-    print(f"[extract_features] Extracting features for {total} authors...")
+    print(f"[extract_features] Extracting raw features for {total} authors...")
     rows: list[dict] = []
     for i, (author, user_posts) in enumerate(grouped, 1):
         if i % 100 == 0:
@@ -349,8 +478,56 @@ def main() -> None:
     features = pd.DataFrame(rows)
     features.to_parquet(FEATURES_OUT, index=False)
     print(f"[extract_features] Saved {len(features)} rows to {FEATURES_OUT}")
-
     print_summary(features)
+
+
+def run_znorm_mode(user_labels: pd.DataFrame,
+                   user_timelines: pd.DataFrame) -> None:
+    """Per-user z-normalised feature extraction."""
+    labels_idx = user_labels.set_index("author")
+    grouped    = user_timelines.groupby("author", sort=False)
+    total      = len(grouped)
+
+    print(f"[extract_features] Extracting z-normalised features for "
+          f"{total} authors...")
+    rows: list[dict] = []
+    for i, (author, user_posts) in enumerate(grouped, 1):
+        if i % 100 == 0:
+            print(f"[extract_features]   {i}/{total}...", flush=True)
+        label_row = labels_idx.loc[author]
+        rows.append(build_feature_row_znorm(author, user_posts, label_row))
+
+    features = pd.DataFrame(rows)
+    features.to_parquet(FEATURES_ZNORM_OUT, index=False)
+    print(f"[extract_features] Saved {len(features)} rows to "
+          f"{FEATURES_ZNORM_OUT}")
+    print_znorm_summary(features)
+
+
+def main() -> None:
+    """Run stage 3 in raw mode (default) or z-norm mode (--znorm)."""
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--znorm", action="store_true",
+                        help="Emit per-user z-normalised features "
+                             "(features_znorm.parquet)")
+    parser.add_argument("--all",   action="store_true",
+                        help="Run both raw and z-norm modes")
+    args = parser.parse_args()
+
+    print("[extract_features] Loading labels and timelines...")
+    user_labels    = pd.read_parquet(LABELS_IN)
+    user_timelines = pd.read_parquet(TIMELINES_IN)
+
+    # Only flag low_confidence on the first pass (it mutates user_labels.parquet)
+    user_labels = flag_low_confidence(user_labels)
+    user_labels.to_parquet(LABELS_IN, index=False)
+    print(f"[extract_features] Updated {LABELS_IN} with low_confidence flag")
+
+    if args.all or not args.znorm:
+        run_raw_mode(user_labels, user_timelines)
+    if args.all or args.znorm:
+        run_znorm_mode(user_labels, user_timelines)
 
 
 if __name__ == "__main__":
