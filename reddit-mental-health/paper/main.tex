@@ -81,13 +81,20 @@ severity \citep{dechoudhury2013predicting,coppersmith2014quantifying},
 suicidality \citep{yates2017depression,shing2018expert}, and transitions
 in mental state \citep{gkotsis2016language}.
 Most of this work treats individual posts as independent observations.
-We instead ask a \emph{longitudinal} question:
+We instead ask a \emph{longitudinal} question rooted in the
+\emph{Moments of Change} (MoC) framing introduced by
+\citet{tsakalidis2022identifying}: can sudden shifts
+(``switches'') or gradual shifts (``escalations'') in a user's
+mental state be detected from the linguistic trace of their posts?
+In MoC terms, crisis and recovery turning points are both instances of
+switches, distinguished by the direction of the shift.
 
 \begin{quote}
 \textit{Can we detect statistically significant shifts in linguistic
 patterns in a Reddit user's posting history in the 2--4 weeks preceding
-a self-reported crisis or recovery event, compared to their baseline
-posting behaviour?}
+a self-reported crisis or recovery switch, compared to their baseline
+posting behaviour---while controlling for stable individual writing
+style so that we measure change rather than identity?}
 \end{quote}
 
 Our contributions are:
@@ -98,6 +105,9 @@ Our contributions are:
   \item Evidence that VADER sentiment, type-token ratio, and posting frequency
         show directionally distinct trajectories for crisis versus recovery
         users in the weeks before their turning point.
+  \item A per-user z-score normalisation scheme that isolates within-user
+        temporal change from between-user style, plus a deltas-only ablation
+        that forces the classifier to learn from change alone.
   \item A sensitivity analysis quantifying the impact of label noise
         introduced by ambiguous recovery phrases (specifically
         \emph{``made it''}).
@@ -136,9 +146,34 @@ on Reddit posts from r/SuicideWatch, validating the feasibility of
 keyword-anchored labelling strategies like ours.
 The CLPsych shared tasks \citep{zirikly2019clpsych} have operationalised
 a related idea: given a user's post history, predict their risk level.
-Our work differs in using a sliding-window feature approach rather than a
-sequence model, prioritising interpretability and statistical transparency
-over raw predictive performance.
+\citet{low2020natural} analysed r/COVID19\_support and 28 other
+Reddit mental-health communities during the pandemic, finding
+sharp increases in anxiety-related language and identifying
+r/OCD and r/HealthAnxiety as particularly volatile---an observation
+directly relevant to our OCD-heavy cohort.
+Our work differs from these in using a sliding-window feature approach
+rather than a sequence model, prioritising interpretability and
+statistical transparency over raw predictive performance.
+
+\paragraph{Moments of Change and change-point detection.}
+\citet{tsakalidis2022identifying} introduced the \emph{Moments of Change}
+task, distinguishing between \emph{switches} (sudden changes in mood)
+and \emph{escalations} (gradual changes) in per-user longitudinal text.
+They propose a \emph{temporally sensitive} F1 metric that awards partial
+credit to predictions near but not exactly at the annotated change point,
+and demonstrate that change detection is harder than static mood
+classification.
+Our turning-point labels are closest to their \emph{switch} category:
+we detect the first post in which a user's language crosses a
+crisis or recovery threshold.
+Orthogonal to supervised methods is the offline change-point detection
+literature surveyed by \citet{vandenburg2020survey}, which formalises
+the problem as identifying points in a time series where the generative
+distribution changes.
+This framing informs our design decisions around per-user normalisation
+(Section~\ref{sec:features}): to identify \emph{change} rather than
+stable individual style, each user's linguistic trajectory should be
+compared against their own baseline distribution, not the population's.
 
 \paragraph{Sentiment and lexical features.}
 VADER \citep{hutto2014vader} is a rule-based sentiment analyser designed
