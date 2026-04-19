@@ -52,6 +52,12 @@ DATA_DIR    = Path(__file__).resolve().parent.parent / "data"
 FEATURES_IN = DATA_DIR / "features.parquet"
 RESULTS_OUT = DATA_DIR / "model_results.json"
 
+# Columns that are metadata, not features. Everything else numeric is a feature.
+METADATA_COLS = {
+    "author", "label", "low_confidence", "n_posts",
+    "tp_date", "n_baseline_buckets",
+}
+
 RANDOM_STATE = 42
 N_FOLDS      = 5
 
@@ -78,17 +84,31 @@ LABEL_ORDER = ["crisis", "recovery", "neither"]
 # ── Data preparation ───────────────────────────────────────────────────────
 
 def build_presence_flags(df: pd.DataFrame) -> pd.DataFrame:
-    """Add binary flags: 1 if the user had >=1 post in that window, else 0."""
+    """Add binary flags: 1 if the user had >=1 post in that window, else 0.
+
+    Only added if not already present (z-norm mode emits them directly).
+    """
     df = df.copy()
     for win in ("pre_4w", "pre_2w", "pre_1w"):
-        # post_freq is always 0 (not NaN) when window is empty, so use that
-        df[f"has_posts_{win}"] = (df[f"post_freq_{win}"] > 0).astype(float)
+        col = f"has_posts_{win}"
+        if col in df.columns:
+            continue
+        freq_col = f"post_freq_{win}"
+        if freq_col in df.columns:
+            df[col] = (df[freq_col] > 0).astype(float)
     return df
+
+
+def discover_feature_cols(df: pd.DataFrame) -> list[str]:
+    """Return feature column names: all numeric columns minus metadata."""
+    numeric = df.select_dtypes(include=["number", "bool"]).columns
+    return [c for c in numeric if c not in METADATA_COLS]
 
 
 def prepare_dataset(
     df: pd.DataFrame,
     high_confidence_only: bool = False,
+    feature_cols: list[str] | None = None,
 ) -> tuple[pd.DataFrame, np.ndarray, LabelEncoder]:
     """Return feature matrix X, encoded labels y, and the fitted LabelEncoder.
 
@@ -105,7 +125,15 @@ def prepare_dataset(
     le = LabelEncoder()
     le.fit(LABEL_ORDER)
     y = le.transform(df["label"])
-    X = df[ALL_FEATURE_COLS].astype(float)
+
+    if feature_cols is None:
+        # Back-compat: use the hard-coded raw-feature list if available,
+        # otherwise auto-discover from the dataframe.
+        if all(c in df.columns for c in ALL_FEATURE_COLS):
+            feature_cols = ALL_FEATURE_COLS
+        else:
+            feature_cols = discover_feature_cols(df)
+    X = df[feature_cols].astype(float)
     return X, y, le
 
 
@@ -227,8 +255,9 @@ def rf_feature_importance(
     pipeline.fit(X, y)
     clf = pipeline.named_steps["clf"]
     imp = clf.feature_importances_
-    # After imputation the feature names are preserved
-    names = ALL_FEATURE_COLS
+    # After imputation the feature names are preserved. X.columns is
+    # authoritative whether we passed raw or z-norm features.
+    names = list(X.columns)
     df_imp = pd.DataFrame({"feature": names, "importance": imp})
     return df_imp.sort_values("importance", ascending=False).head(top_n)
 
@@ -338,29 +367,58 @@ def print_feature_importance(imp_df: pd.DataFrame, model_label: str) -> None:
 
 # ── Main ──────────────────────────────────────────────────────────────────
 
-def main() -> None:
-    """Run stage 4: train, evaluate, sensitivity analysis, print results."""
-    print("[train_model] Loading feature matrix...")
-    df = pd.read_parquet(FEATURES_IN)
+def _jsonify(obj):
+    """Recursively convert numpy scalars to Python types for JSON output."""
+    if isinstance(obj, (np.floating, np.float32, np.float64)):
+        return float(obj)
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, dict):
+        return {k: _jsonify(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_jsonify(v) for v in obj]
+    return obj
+
+
+def run_experiment(
+    features_path: Path,
+    results_path: Path,
+    label: str = "raw",
+    feature_cols: list[str] | None = None,
+) -> dict:
+    """Train LR + RF with 5-fold CV on the given feature matrix.
+
+    Parameters
+    ----------
+    features_path : path to a features parquet
+    results_path  : where to save the metrics JSON
+    label         : short tag for print-outs (e.g. 'raw', 'znorm', 'deltas')
+    feature_cols  : explicit feature columns; if None, auto-discover
+    """
+    print(f"[train_model] ===== experiment: {label} =====")
+    print(f"[train_model] Loading {features_path}...")
+    df = pd.read_parquet(features_path)
     print(f"[train_model] {len(df)} users, label counts: "
           f"{df['label'].value_counts().to_dict()}")
-    print(f"[train_model] low_confidence users: {df['low_confidence'].sum()}")
+    print(f"[train_model] low_confidence users: {int(df['low_confidence'].sum())}")
 
     datasets: dict[str, tuple] = {
-        "full":      prepare_dataset(df, high_confidence_only=False),
-        "high_conf": prepare_dataset(df, high_confidence_only=True),
+        "full":      prepare_dataset(df, high_confidence_only=False,
+                                     feature_cols=feature_cols),
+        "high_conf": prepare_dataset(df, high_confidence_only=True,
+                                     feature_cols=feature_cols),
     }
     for name, (X, y, le) in datasets.items():
         counts = {le.classes_[i]: int((y == i).sum()) for i in range(len(le.classes_))}
-        print(f"[train_model] dataset={name:12s}  n={len(y)}  {counts}")
+        print(f"[train_model] dataset={name:12s}  n={len(y)}  "
+              f"n_features={X.shape[1]}  {counts}")
 
     models: dict[str, Pipeline] = {
-        "LogReg": make_lr(),
+        "LogReg":     make_lr(),
         "RandForest": make_rf(),
     }
 
     all_results: dict[str, dict] = {}
-
     for model_name, pipeline in models.items():
         all_results[model_name] = {}
         for dataset_name, (X, y, le) in datasets.items():
@@ -371,39 +429,93 @@ def main() -> None:
             print(f"[train_model]   macro F1={metrics['macro']['f1']:.4f}  "
                   f"ROC-AUC={metrics['macro']['roc_auc']:.4f}")
 
-    # Feature importance on full dataset
     print("[train_model] Fitting RF on full dataset for feature importance...")
-    X_full, y_full, le_full = datasets["full"]
+    X_full, y_full, _ = datasets["full"]
     imp_df = rf_feature_importance(make_rf(), X_full, y_full)
 
-    # Print results
     print_results_table(all_results)
     print_sensitivity_delta(all_results)
-    print_feature_importance(imp_df, "full dataset")
-
-    # Save results for visualize.py
-    # Convert numpy types for JSON serialisation
-    def _jsonify(obj):
-        if isinstance(obj, (np.floating, np.float32, np.float64)):
-            return float(obj)
-        if isinstance(obj, (np.integer,)):
-            return int(obj)
-        if isinstance(obj, dict):
-            return {k: _jsonify(v) for k, v in obj.items()}
-        if isinstance(obj, list):
-            return [_jsonify(v) for v in obj]
-        return obj
+    print_feature_importance(imp_df, f"{label} dataset")
 
     save_payload = {
-        "results":       _jsonify(all_results),
+        "label":   label,
+        "results": _jsonify(all_results),
         "feature_importance": {
             "feature":    imp_df["feature"].tolist(),
             "importance": imp_df["importance"].round(6).tolist(),
         },
     }
-    with open(RESULTS_OUT, "w") as fh:
+    with open(results_path, "w") as fh:
         json.dump(save_payload, fh, indent=2)
-    print(f"[train_model] Saved results to {RESULTS_OUT}")
+    print(f"[train_model] Saved results to {results_path}")
+    return save_payload
+
+
+def print_experiment_comparison(experiments: dict[str, dict]) -> None:
+    """Side-by-side comparison of macro metrics across experiments."""
+    W = 88
+    print("\n" + "=" * W)
+    print("  EXPERIMENT COMPARISON  (macro-averaged, 5-fold CV)")
+    print("=" * W)
+    header = (
+        f"  {'Experiment':<16}{'Dataset':<14}{'Model':<14}"
+        f"{'Macro F1':>10}{'Macro AUC':>12}"
+    )
+    print(header)
+    print("-" * W)
+    for exp_label, payload in experiments.items():
+        for model_name, datasets in payload["results"].items():
+            for dataset_name, metrics in datasets.items():
+                print(
+                    f"  {exp_label:<16}{dataset_name:<14}{model_name:<14}"
+                    f"{metrics['macro']['f1']:>10.4f}"
+                    f"{metrics['macro']['roc_auc']:>12.4f}"
+                )
+        print("-" * W)
+    print()
+
+
+def main() -> None:
+    """Run stage 4: train, evaluate, and support --znorm / --all modes."""
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--features", type=Path, default=FEATURES_IN,
+                        help="Features parquet to use (default: raw)")
+    parser.add_argument("--results",  type=Path, default=RESULTS_OUT,
+                        help="Output JSON path for metrics")
+    parser.add_argument("--label",    type=str, default="raw",
+                        help="Tag for this experiment in printed output")
+    parser.add_argument("--znorm",    action="store_true",
+                        help="Shortcut: run on features_znorm.parquet")
+    parser.add_argument("--all",      action="store_true",
+                        help="Run raw and znorm side-by-side and compare")
+    args = parser.parse_args()
+
+    if args.all:
+        experiments: dict[str, dict] = {}
+        experiments["raw"] = run_experiment(
+            FEATURES_IN,
+            RESULTS_OUT,
+            label="raw",
+        )
+        experiments["znorm"] = run_experiment(
+            DATA_DIR / "features_znorm.parquet",
+            DATA_DIR / "model_results_znorm.json",
+            label="znorm",
+        )
+        print_experiment_comparison(experiments)
+        return
+
+    if args.znorm:
+        features_path = DATA_DIR / "features_znorm.parquet"
+        results_path  = DATA_DIR / "model_results_znorm.json"
+        label         = "znorm"
+    else:
+        features_path = args.features
+        results_path  = args.results
+        label         = args.label
+
+    run_experiment(features_path, results_path, label=label)
 
 
 if __name__ == "__main__":
