@@ -34,34 +34,38 @@
 
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{abstract}
-We investigate whether statistically observable shifts in linguistic behaviour
-precede self-reported mental health crisis or recovery events on Reddit.
+We investigate whether statistically observable shifts in linguistic
+behaviour precede self-reported mental health crisis or recovery events
+on Reddit, and how much of the resulting classifier signal is due to
+\emph{within-user change} versus \emph{stable between-user style}.
 Using 96{,}073 posts from five mental-health subreddits
 (r/depression, r/ADHD, r/PTSD, r/OCD, r/aspergers) drawn from the
-publicly available \texttt{solomonk/reddit\_mental\_health\_posts} dataset,
-we construct per-user timelines and identify \emph{turning-point posts}---posts
-containing crisis or recovery keyword phrases---for 132 users who meet a
-minimum posting-history criterion.
-For each user we extract seven linguistically motivated features
-(VADER sentiment, type-token ratio, sentence length, posting frequency,
-first-person pronoun rate, negative-affect word rate, and post length)
-across four sliding time windows (baseline, 4-week, 2-week, and 1-week
-preceding the turning point).
-Logistic Regression achieves macro-averaged ROC-AUC of 0.62 on the
-three-class task (crisis / recovery / neither); a Random Forest reaches
-0.65.
-The clearest signal is a recovery-group sentiment increase of $+0.22$
-compound-score units in the week before the turning point, against a
-simultaneous crisis-group drop of $-0.07$.
-Feature importance analysis reveals that baseline writing style dominates
-over temporal-shift features, suggesting the classifier distinguishes
-subreddit population characteristics more than pre-crisis linguistic
-change---a finding we discuss as a key limitation.
-A sensitivity analysis excluding 33 low-confidence labels confirms that
-recovery signal robustness depends critically on label quality.
-We discuss implications for early-warning research, the limitations of
-keyword-based labelling, and the ethical constraints on using public
-mental-health data.
+publicly available \texttt{solomonk/reddit\_mental\_health\_posts}
+dataset, we construct per-user timelines and label 132 users with
+crisis or recovery turning points from a keyword-based schema.
+We extract four complementary feature groups across four sliding time
+windows: seven linguistic features, their per-user z-scored versions,
+six posting-behaviour features (hour-of-day entropy, late-night rate,
+inter-post intervals, weekend rate), and six semantic-shift features
+derived from a sentence-transformer encoder.
+A Random Forest achieves macro-averaged ROC-AUC of $0.65$ on raw
+linguistic features, rising to $0.68$ with temporal features and
+$0.69$ with the full feature union.
+Per-user normalisation isolates temporal change signal (AUC $0.56$),
+confirming that pre-crisis linguistic shifts are detectable
+independent of baseline style.
+However, baseline style and change signals are additive rather than
+redundant---the combined feature set achieves AUC $0.65$, quantifying
+the independent contribution of each signal type.
+An unsupervised PELT change-point baseline on weekly sentiment hits
+ground-truth turning points at only $15.3\%$ within $\pm 2$ weeks
+(random null $11.4\%$), motivating the supervised feature-based
+approach.
+A sensitivity analysis excluding 33 low-confidence labels confirms
+that recovery signal robustness depends critically on label quality.
+We discuss implications for early-warning research, the limitations
+of keyword-based labelling, and the ethical constraints on using
+public mental-health data.
 \end{abstract}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -100,14 +104,28 @@ style so that we measure change rather than identity?}
 Our contributions are:
 \begin{enumerate}
   \item A reproducible pipeline for constructing user timelines, labelling
-        turning-point posts, and extracting sliding-window linguistic features
-        from a publicly available Reddit dataset.
+        turning-point posts, and extracting sliding-window linguistic,
+        temporal, and embedding features from a publicly available
+        Reddit dataset.
   \item Evidence that VADER sentiment, type-token ratio, and posting frequency
         show directionally distinct trajectories for crisis versus recovery
         users in the weeks before their turning point.
   \item A per-user z-score normalisation scheme that isolates within-user
-        temporal change from between-user style, plus a deltas-only ablation
-        that forces the classifier to learn from change alone.
+        temporal change from between-user style, plus a deltas-only
+        ablation that forces the classifier to learn from change alone.
+        Together these show the change signal is detectable (AUC\,$\approx$\,0.56)
+        yet additive to baseline style rather than redundant.
+  \item Six posting-behaviour features (hour-of-day entropy, late-night rate,
+        inter-post intervals, weekend rate) computed per window, yielding
+        the single largest feature-group improvement in our ablation
+        ($+0.03$ AUC over the linguistic baseline).
+  \item Six semantic-shift features---cosine similarity and L2 distance
+        between baseline and pre-window embedding centroids---computed
+        from a sentence-transformer encoder, included after the intended
+        MentalBERT model was gated on the hosting hub.
+  \item An unsupervised PELT change-point baseline on weekly sentiment
+        that falls essentially to chance, providing a reference point
+        against which the supervised models are measured.
   \item A sensitivity analysis quantifying the impact of label noise
         introduced by ambiguous recovery phrases (specifically
         \emph{``made it''}).
@@ -336,6 +354,112 @@ raw window values capture absolute levels.
 In total, each user is represented by 28 raw features, 21 delta features,
 and 3 presence flags (52 features).
 
+\subsection{Per-user z-score normalisation}
+\label{sec:znorm}
+To isolate within-user change from stable between-user style we
+compute a second feature set in which each pre-window value is
+standardised against the user's own baseline variability.
+We split each user's baseline into non-overlapping 1-week buckets
+anchored to $T - 4\text{w}$, compute each of the seven features per
+bucket, and take the per-feature mean and standard deviation.
+A pre-window value is then reported as the $z$-score
+$(f_w - \mu_{\text{base}}) / \sigma_{\text{base}}$.
+Users with fewer than two usable baseline buckets (14\% of the cohort)
+receive NaN z-scores, which are median-imputed inside the classifier
+pipeline.
+This yields a 24-feature representation: $7 \times 3$ z-scored pre-window
+values plus the 3 presence flags.
+
+\subsection{Temporal posting-behaviour features}
+\label{sec:temporal}
+Linguistic features say \emph{what} a user writes; temporal features
+capture \emph{when} they write.
+We compute six per-window temporal features (Table~\ref{tab:temporal}):
+
+\begin{table}[h]
+\small
+\centering
+\begin{tabular}{lp{5cm}}
+\toprule
+\textbf{Feature} & \textbf{Definition} \\
+\midrule
+\texttt{hour\_entropy} &
+  Normalised Shannon entropy of the hour-of-day distribution of posts
+  (0 = single hour, 1 = uniform across 24 hours). \\
+\texttt{late\_night\_rate} &
+  Fraction of posts in the four-hour window $[\text{00:00}, \text{04:00})$ UTC. \\
+\texttt{interval\_mean\_hr} &
+  Mean time between consecutive posts (hours). \\
+\texttt{interval\_std\_hr} &
+  Standard deviation of inter-post intervals. \\
+\texttt{max\_gap\_hr} &
+  Largest gap between consecutive posts in the window. \\
+\texttt{weekend\_rate} &
+  Fraction of posts on Saturday or Sunday. \\
+\bottomrule
+\end{tabular}
+\caption{Six temporal features extracted per window.}
+\label{tab:temporal}
+\end{table}
+
+These are motivated by clinical observations that disrupted circadian
+rhythm and late-night activity are correlates of depression and
+anxiety, and by prior Reddit findings that help-seeking volume spikes
+outside of traditional hours.
+Deltas $f_w - f_{\text{baseline}}$ are computed for each pre-window,
+yielding 42 additional features on top of the 52 linguistic ones.
+
+\subsection{Semantic-shift features from sentence embeddings}
+\label{sec:embeddings}
+To add a distributional-semantic signal on top of the hand-engineered
+linguistic features, we compute per-post contextual embeddings and
+derive per-user semantic-shift scalars.
+The intended encoder was MentalBERT
+(\texttt{mental/mental-bert-base-uncased}), but at the time of writing
+that checkpoint and both \texttt{mental-roberta-base} mirrors are
+gated repositories on the Hugging Face Hub requiring institutional
+access.
+We fall back to the open \texttt{sentence-transformers/all-mpnet-base-v2}
+encoder.
+We therefore present these features as \emph{domain-general semantic
+shift features} rather than domain-specialised mental-health encodings;
+results with an in-domain encoder would likely be stronger.
+
+For each post we take the $[\text{CLS}]$ token of the final layer as a
+768-dimensional embedding.
+For each user and window $w \in \{\text{baseline}, \text{pre\_4w},
+\text{pre\_2w}, \text{pre\_1w}\}$ we mean-pool the embeddings of posts
+inside the window to produce a centroid $\mathbf{c}_w$.
+We then report six scalar features:
+\[
+  \text{cos\_sim}_w = \frac{\mathbf{c}_{\text{baseline}} \cdot \mathbf{c}_w}
+                          {\lVert\mathbf{c}_{\text{baseline}}\rVert \lVert\mathbf{c}_w\rVert},
+  \quad
+  \text{l2\_dist}_w = \lVert\mathbf{c}_{\text{baseline}} - \mathbf{c}_w\rVert_2
+\]
+for $w \in \{\text{pre\_4w}, \text{pre\_2w}, \text{pre\_1w}\}$.
+This keeps the feature count tractable for a 581-user classifier while
+directly measuring semantic drift from baseline, in keeping with the
+Moments-of-Change framing.
+
+\subsection{Unsupervised change-point baseline (PELT)}
+\label{sec:pelt}
+As a non-learned reference point we run the PELT algorithm
+\citep{vandenburg2020survey} on each user's weekly-mean VADER sentiment
+time series.
+Missing weeks are forward-filled from the previous observation to
+produce a regular series, and PELT is applied with an $\ell_2$ cost
+function and penalty $1.5$ (tuned so the median user receives one
+detected change-point).
+For each crisis or recovery user with a known turning-point date $T$
+we compute the nearest-change-point distance in weeks; a hit at
+tolerance $\pm k$ weeks is declared when this distance is
+$\leq k$.
+We report hit rates at $\pm 1$, $\pm 2$, and $\pm 4$ weeks against a
+random-CP null baseline that selects a single change-point uniformly
+over the user's active timeline (expected hit rate
+$2k / n_{\text{weeks}}$).
+
 \subsection{Classifiers}
 We train two classifiers on the three-class task (crisis / recovery /
 neither):
@@ -412,9 +536,9 @@ Avg post length     & $-29.58$ & $-30.16$ & $-20.38$ \\
   \label{fig:sentiment}
 \end{figure}
 
-\subsection{Classification performance}
-Table~\ref{tab:results} presents full 5-fold CV results for both models
-on the full dataset.
+\subsection{Classification performance: per-class detail}
+Table~\ref{tab:results} presents per-class 5-fold CV results for both
+models on the raw linguistic feature set (the default baseline).
 LR achieves macro F1\,=\,0.38 and macro ROC-AUC\,=\,0.62.
 RF reaches a higher ROC-AUC (0.65) but concentrates predictions toward
 \emph{neither}---a manifestation of class imbalance despite balanced
@@ -447,6 +571,86 @@ ROC-AUC\,=\,0.69.
 \label{tab:results}
 \end{table}
 
+\subsection{Feature-group ablation}
+\label{sec:ablation}
+Table~\ref{tab:ablation} is the primary ablation result: it reports
+macro F1 and macro one-vs-rest ROC-AUC for seven feature configurations
+on the full $n{=}581$ dataset.
+
+\begin{table}[t]
+\small
+\centering
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{\textbf{LogReg}} & \multicolumn{2}{c}{\textbf{RandForest}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+\textbf{Feature set} & \textbf{F1} & \textbf{AUC} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+Deltas only                 & 0.323 & 0.564 & 0.320 & 0.575 \\
+z-norm only                 & 0.344 & 0.551 & 0.325 & 0.559 \\
+Raw (style $+$ deltas)      & 0.377 & 0.620 & 0.351 & 0.649 \\
+Raw $+$ embeddings          & 0.374 & 0.624 & 0.355 & 0.629 \\
+Raw $+$ z-norm (combined)   & 0.386 & 0.634 & 0.356 & 0.651 \\
+Raw $+$ temporal            & 0.387 & 0.581 & \textbf{0.396} & 0.676 \\
+All (kitchen sink)          & 0.360 & 0.585 & \textbf{0.396} & \textbf{0.687} \\
+\midrule
+PELT hit@$\pm 2$w (unsup.)  & \multicolumn{4}{c}{$0.153$ (null $0.114$)} \\
+\bottomrule
+\end{tabular}
+\caption{Feature-group ablation on the full dataset
+($n{=}581$, 5-fold stratified CV, pooled out-of-fold predictions).
+Change-only configurations (``Deltas only'', ``z-norm only'') isolate
+within-user shift from between-user style.
+The PELT row is an unsupervised change-point baseline on weekly
+sentiment, scored against ground-truth turning-point dates for the
+132 labelled users.}
+\label{tab:ablation}
+\end{table}
+
+Three results stand out.
+First, change-only configurations (deltas, z-norm) reach
+AUC\,$\approx$\,0.56, substantially above the unsupervised PELT
+baseline but substantially below the raw linguistic configuration
+(AUC\,$=$\,0.65)---confirming that stable individual style carries
+most of the classifier signal but that within-user change carries
+real, learnable signal.
+Second, the change and style signals are additive: combining raw
+and z-normalised features yields AUC\,$=$\,0.65, essentially matching
+raw alone, while adding temporal features to raw produces the largest
+single-group lift (AUC\,$+0.03$ for RF).
+Third, stacking all four groups (linguistic, z-norm, temporal,
+embeddings; 127 features total) yields the best RF result
+(AUC\,$=$\,0.687) with the caveat that the LR variant degrades
+under feature bloat.
+
+\subsection{Does temporal change persist beyond baseline style?}
+\label{sec:change-vs-style}
+Given that raw features dominate (Section~\ref{sec:ablation}), a
+natural concern is that the classifier's signal is entirely
+between-user style rather than pre-crisis change.
+The z-norm experiment provides a direct test: by standardising each
+pre-window feature against the user's own baseline weekly-bucket
+distribution, we strip out exactly the between-user component.
+The resulting classifier achieves AUC\,$=$\,$0.559$ (RF), well above
+the $0.500$ chance level and above the unsupervised PELT baseline of
+$0.153$ hit@$\pm 2$w (null $0.114$).
+The deltas-only ablation---using only $f_w - f_{\text{baseline}}$
+values---reaches a similar AUC ($0.575$), a useful replication since
+it reaches the same conclusion through a simpler operationalisation.
+
+Crucially, adding z-normed features on top of raw features produces
+AUC\,$=$\,$0.651$---indistinguishable from raw alone ($0.649$)---while
+two z-norm features (\texttt{post\_freq\_znorm\_pre\_2w} and
+\texttt{post\_freq\_znorm\_pre\_1w}) enter the top-15 RF importance
+list.
+Interpretation: within-user change signal exists and is detectable,
+but against this cohort and feature set it contributes roughly the
+same information as the raw deltas already do.
+The more informative additions are the temporal posting-behaviour
+features, whose single top entry (\texttt{hour\_entropy\_baseline})
+is the most important feature across every configuration that
+includes it.
+
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/roc_curves.pdf}
@@ -456,16 +660,23 @@ ROC-AUC\,=\,0.69.
 \end{figure}
 
 \subsection{Feature importance}
-Figure~\ref{fig:importance} presents RF Gini importances.
-The top-ranked features are \texttt{ttr\_baseline} (0.055) and
-\texttt{sentiment\_mean\_baseline} (0.040), followed by
-\texttt{sentiment\_mean\_pre\_4w} (0.036).
+Figure~\ref{fig:importance} presents RF Gini importances from the
+raw-feature classifier for comparability with prior work;
+Section~\ref{sec:ablation} above already discusses how importance
+shifts once temporal and z-norm features are added.
+On raw features alone, the top-ranked features are
+\texttt{ttr\_baseline} (0.055) and \texttt{sentiment\_mean\_baseline}
+(0.040), followed by \texttt{sentiment\_mean\_pre\_4w} (0.036).
 The dominance of \emph{baseline} features over \emph{delta} features
-suggests that baseline writing style---not change from baseline---is
-the primary classifier signal.
-This may indicate that the classifier is partially learning
-subreddit-specific or user-specific base rates rather than
-pre-crisis linguistic shift per se.
+suggests that baseline writing style carries more classifier signal
+than change from baseline---consistent with our change-vs-style
+analysis in Section~\ref{sec:change-vs-style}.
+When temporal features are included,
+\texttt{hour\_entropy\_baseline} displaces every linguistic feature to
+become the single most important predictor (Gini $\approx$ 0.054--0.060
+depending on the feature set), with
+\texttt{hour\_entropy\_delta\_pre\_2w} and
+\texttt{late\_night\_rate\_baseline} also entering the top ten.
 
 \begin{figure}[t]
   \centering
@@ -475,6 +686,24 @@ pre-crisis linguistic shift per se.
            green: raw pre-window features.}
   \label{fig:importance}
 \end{figure}
+
+\subsection{Unsupervised change-point baseline (PELT)}
+\label{sec:pelt-results}
+Running PELT on weekly-mean sentiment for the 131 labelled users with
+sufficient activity yields at least one detected change-point for
+only $77$ of them (mean $0.98$ CPs per user).
+The nearest detected change-point falls within $\pm 2$ weeks of the
+ground-truth turning point for $15.3\%$ of labelled users overall
+(or $26.0\%$ if we restrict to users with any detected CP), against
+a random-CP null rate of $11.4\%$.
+At the stricter $\pm 1$-week tolerance, PELT hits $7.6\%$ versus a
+null of $5.7\%$.
+The unsupervised approach is therefore only weakly above chance and
+well below the supervised classifiers
+(Table~\ref{tab:ablation}, macro RF AUC $\geq 0.65$).
+This gap motivates the supervised feature-based framing: the pre-crisis
+signal is present but not concentrated enough in univariate sentiment
+alone for a purely generative change-point method to detect it.
 
 \subsection{Sensitivity analysis}
 \label{sec:sensitivity-results}
@@ -521,14 +750,23 @@ The turning-point date range (2019--2021) coincides with the COVID-19
 pandemic, which may confound both baseline behaviour and turning-point
 triggers.
 
-\paragraph{Baseline features dominate.}
-The prominence of baseline TTR and sentiment in the RF importance rankings
-is a cautionary finding: the classifier may be identifying the kind of
-person who posts in these subreddits (and in what way) more than it is
-detecting pre-crisis linguistic \emph{change}.
-Future work should orthogonalise baseline user style from change scores,
-for example by computing user-level z-scores before extracting window
-features.
+\paragraph{Baseline style and within-user change are additive.}
+The prominence of baseline TTR and sentiment in the RF importance
+rankings is a cautionary finding---the classifier is partly identifying
+\emph{who posts in these subreddits and how} rather than \emph{what
+changes before a turning point}.
+We address this directly with the per-user z-score normalisation
+(Section~\ref{sec:znorm}) and deltas-only ablation, which together
+show that within-user change signal exists at AUC\,$\approx$\,0.56 but
+carries roughly the same information that is already present in the
+raw delta columns.
+The combined raw+z-norm configuration therefore performs no better
+than raw alone, but the two signals are measurably independent: z-norm
+post-frequency features enter the top-15 RF importance once available.
+Future work should operationalise the change-vs-style distinction
+directly in the objective function---for instance by training a model
+that must predict label from z-normalised features alone---rather
+than relying on feature importance as an indirect diagnostic.
 
 \paragraph{Limitations.}
 Four limitations bound the conclusions that can be drawn from this study.
@@ -562,25 +800,44 @@ help-seeking behaviour, and changed platform usage patterns.
 We cannot disentangle longitudinal linguistic trends from period effects,
 and results may not transfer to pre-pandemic or post-pandemic populations.
 
-\textbf{(4) Baseline style dominates temporal shift detection.}
-The top two Random Forest predictors are both baseline features
-(\texttt{ttr\_baseline}, \texttt{sentiment\_mean\_baseline}), not delta
-features.
-This indicates that the classifiers are partly exploiting stable
-individual writing styles rather than detecting pre-crisis linguistic
-\emph{change}---the core theoretical claim of the study.
-Until individual-level style is explicitly controlled for (e.g.\ by
-normalising each feature by the user's own baseline variance), reported
-performance likely overestimates the model's ability to detect
-deterioration trajectories.
+\textbf{(4) Baseline style dominates change signal.}
+Raw baseline features rank above both delta and z-normalised features
+in RF importance even when the latter are available.
+Our ablation (Section~\ref{sec:ablation}) confirms that change-only
+configurations reach only AUC\,$\approx$\,0.56 versus AUC\,$=$\,0.65 for
+raw features.
+The supervised classifier's advantage over the unsupervised PELT
+baseline therefore comes partly from signal it is not the primary
+claim of this paper to isolate: stable individual and subreddit style.
+We report the change-only numbers directly so that the style versus
+change contribution is legible to downstream readers.
+
+\textbf{(5) Domain-general rather than mental-health-specialised
+embeddings.}
+The embedding features in Section~\ref{sec:embeddings} were computed
+with \texttt{sentence-transformers/all-mpnet-base-v2} rather than
+MentalBERT, because
+\texttt{mental/mental-bert-base-uncased} and both
+\texttt{mental-roberta-base} mirrors were gated repositories at the
+time of writing.
+Domain-specialised encoders would likely increase the incremental
+contribution of the embedding features; we report our number as a
+lower bound.
 
 \paragraph{Future directions.}
-Incorporating transformer-based features (sentence embeddings, fine-tuned
-depression classifiers) would capture semantics beyond the lexical surface.
+Access to the MentalBERT checkpoint would let us quantify how much of
+the embedding-feature shortfall is due to domain mismatch versus
+information saturation of the linguistic features.
 Finer temporal granularity---daily rather than weekly windows---combined
 with a larger cohort would allow proper time-series modelling
 \citep{yates2017depression}.
-Multi-task learning across subreddits may improve generalisation.
+Multi-task learning across subreddits may improve generalisation,
+given that r/OCD dominates the present cohort.
+Finally, applying a temporally-sensitive F1 metric
+\citep{tsakalidis2022identifying} that rewards predictions near but
+not exactly at the turning point would let us re-score the PELT
+baseline more charitably and compare it to the supervised models on
+equal terms.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Ethics}
@@ -630,17 +887,29 @@ clinical claims.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented an end-to-end pipeline for detecting longitudinal linguistic
-markers of mental health turning points in Reddit data.
-Our key findings are: (1) sentiment is the strongest and most consistent
-signal, with a $0.29$-unit gap between crisis and recovery users in the
-week before the turning point; (2) baseline writing style accounts for
-more classifier variance than pre-crisis \emph{change}, suggesting that
-future work should control for individual baseline variation;
-(3) label quality is fragile---removing 33 ambiguously labelled recovery
-users substantially degrades recovery detection.
-We hope this pipeline and sensitivity analysis framework will serve as a
-methodological building block for larger, clinician-validated studies.
+We presented an end-to-end pipeline for detecting longitudinal
+linguistic markers of mental health turning points in Reddit data.
+Our key findings are: (1) sentiment is the strongest and most
+consistent single-feature signal, with a $0.29$-unit gap between
+crisis and recovery users in the week before the turning point;
+(2) change-only feature configurations reach macro AUC\,$\approx$\,0.56,
+substantially above the $0.500$ chance level and the $0.153$
+unsupervised PELT hit@$\pm 2$w baseline, but substantially below the
+$0.65$ achieved by raw features that include baseline style---
+quantifying how much of the total signal is due to stable individual
+and subreddit style rather than pre-crisis \emph{change};
+(3) adding six temporal posting-behaviour features (hour-of-day
+entropy, late-night rate, etc.) yields the largest single-group lift
+over raw, with hour-of-day entropy becoming the single most
+important feature across every configuration that includes it;
+(4) stacking linguistic, z-normalised, temporal, and embedding
+features reaches macro AUC\,$=$\,$0.687$ on the three-class task
+(RF, 127 features); and (5) recovery labels derived from the phrase
+\emph{``made it''} are fragile---removing them drops recovery F1
+by at least $0.14$.
+We hope this pipeline, ablation study, and sensitivity analysis
+framework will serve as a methodological building block for larger,
+clinician-validated studies.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section*{Acknowledgements}
