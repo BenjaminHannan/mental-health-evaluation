@@ -381,23 +381,29 @@ def _jsonify(obj):
 
 
 def run_experiment(
-    features_path: Path,
+    features_path: Path | None,
     results_path: Path,
     label: str = "raw",
     feature_cols: list[str] | None = None,
+    df: pd.DataFrame | None = None,
 ) -> dict:
     """Train LR + RF with 5-fold CV on the given feature matrix.
 
     Parameters
     ----------
-    features_path : path to a features parquet
+    features_path : path to a features parquet (ignored if ``df`` given)
     results_path  : where to save the metrics JSON
     label         : short tag for print-outs (e.g. 'raw', 'znorm', 'deltas')
     feature_cols  : explicit feature columns; if None, auto-discover
+    df            : pre-built features dataframe (bypass file read)
     """
     print(f"[train_model] ===== experiment: {label} =====")
-    print(f"[train_model] Loading {features_path}...")
-    df = pd.read_parquet(features_path)
+    if df is None:
+        print(f"[train_model] Loading {features_path}...")
+        df = pd.read_parquet(features_path)
+    else:
+        print(f"[train_model] Using pre-built dataframe ({len(df)} rows, "
+              f"{df.shape[1]} cols)")
     print(f"[train_model] {len(df)} users, label counts: "
           f"{df['label'].value_counts().to_dict()}")
     print(f"[train_model] low_confidence users: {int(df['low_confidence'].sum())}")
@@ -451,6 +457,26 @@ def run_experiment(
     return save_payload
 
 
+def load_combined_features() -> pd.DataFrame:
+    """Merge raw + z-norm feature parquets on author.
+
+    Keeps metadata from raw (label, low_confidence, n_posts, tp_date) and
+    drops duplicate metadata from the z-norm side, but retains the
+    z-norm-only ``n_baseline_buckets`` column as diagnostic metadata.
+    The resulting frame carries both style (raw) and change (znorm)
+    signals in a single row per user.
+    """
+    raw = pd.read_parquet(FEATURES_IN)
+    zn  = pd.read_parquet(DATA_DIR / "features_znorm.parquet")
+
+    # Columns unique to the znorm frame (drop duplicated metadata first)
+    drop = {"label", "low_confidence", "n_posts", "tp_date"}
+    zn = zn.drop(columns=[c for c in drop if c in zn.columns])
+
+    merged = raw.merge(zn, on="author", how="inner")
+    return merged
+
+
 def print_experiment_comparison(experiments: dict[str, dict]) -> None:
     """Side-by-side comparison of macro metrics across experiments."""
     W = 88
@@ -487,8 +513,10 @@ def main() -> None:
                         help="Tag for this experiment in printed output")
     parser.add_argument("--znorm",    action="store_true",
                         help="Shortcut: run on features_znorm.parquet")
+    parser.add_argument("--combined", action="store_true",
+                        help="Shortcut: run on merged raw+znorm features")
     parser.add_argument("--all",      action="store_true",
-                        help="Run raw and znorm side-by-side and compare")
+                        help="Run raw, znorm, and combined side-by-side")
     args = parser.parse_args()
 
     if args.all:
@@ -503,7 +531,28 @@ def main() -> None:
             DATA_DIR / "model_results_znorm.json",
             label="znorm",
         )
+        combined_df = load_combined_features()
+        combined_cols = discover_feature_cols(build_presence_flags(combined_df))
+        experiments["combined"] = run_experiment(
+            None,
+            DATA_DIR / "model_results_combined.json",
+            label="combined",
+            df=combined_df,
+            feature_cols=combined_cols,
+        )
         print_experiment_comparison(experiments)
+        return
+
+    if args.combined:
+        combined_df = load_combined_features()
+        combined_cols = discover_feature_cols(build_presence_flags(combined_df))
+        run_experiment(
+            None,
+            DATA_DIR / "model_results_combined.json",
+            label="combined",
+            df=combined_df,
+            feature_cols=combined_cols,
+        )
         return
 
     if args.znorm:
