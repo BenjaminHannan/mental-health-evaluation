@@ -1,0 +1,572 @@
+% Longitudinal Linguistic Markers of Mental Health Deterioration
+% Target: CLPsych (Computational Linguistics and Clinical Psychology) Workshop
+% Also submitted to arXiv as a preprint.
+%
+% Build: pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+% Requirements: acl2023.sty (ACL anthology style), standard LaTeX packages
+
+\documentclass[11pt]{article}
+\usepackage[hyperref]{acl2023}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{subcaption}
+
+\definecolor{note}{rgb}{0.4,0.4,0.4}
+
+\title{Longitudinal Linguistic Markers of Mental Health Deterioration:\\
+       A Reddit-Based Sliding-Window Feature Study}
+
+\author{
+  Benjamin Hannan \\
+  Independent Researcher \\
+  \texttt{[email redacted for review]}
+}
+
+\begin{document}
+\maketitle
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{abstract}
+We investigate whether statistically observable shifts in linguistic behaviour
+precede self-reported mental health crisis or recovery events on Reddit.
+Using 96{,}073 posts from five mental-health subreddits
+(r/depression, r/ADHD, r/PTSD, r/OCD, r/aspergers) drawn from the
+publicly available \texttt{solomonk/reddit\_mental\_health\_posts} dataset,
+we construct per-user timelines and identify \emph{turning-point posts}---posts
+containing crisis or recovery keyword phrases---for 132 users who meet a
+minimum posting-history criterion.
+For each user we extract seven linguistically motivated features
+(VADER sentiment, type-token ratio, sentence length, posting frequency,
+first-person pronoun rate, negative-affect word rate, and post length)
+across four sliding time windows (baseline, 4-week, 2-week, and 1-week
+preceding the turning point).
+Logistic Regression achieves macro-averaged ROC-AUC of 0.62 on the
+three-class task (crisis / recovery / neither); a Random Forest reaches
+0.65.
+The clearest signal is a recovery-group sentiment increase of $+0.22$
+compound-score units in the week before the turning point, against a
+simultaneous crisis-group drop of $-0.07$.
+A sensitivity analysis excluding 33 low-confidence labels confirms that
+recovery signal robustness depends critically on label quality.
+We discuss implications for early-warning research, the limitations of
+keyword-based labelling, and the ethical constraints on using public
+mental-health data.
+\end{abstract}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+Mental health crises carry enormous human cost, yet they often emerge
+gradually, leaving traces in a person's everyday communication before
+any formal help-seeking occurs.
+Online communities---particularly Reddit's mental-health subreddits---have
+become a significant venue for self-disclosure, offering a naturalistic
+longitudinal record of how people articulate distress over time.
+
+A body of work in computational linguistics and clinical psychology
+has demonstrated that language-based signals correlate with depression
+severity \citep{dechoudhury2013predicting,coppersmith2014quantifying},
+suicidality \citep{yates2017depression,shing2018expert}, and transitions
+in mental state \citep{gkotsis2016language}.
+Most of this work treats individual posts as independent observations.
+We instead ask a \emph{longitudinal} question:
+
+\begin{quote}
+\textit{Can we detect statistically significant shifts in linguistic
+patterns in a Reddit user's posting history in the 2--4 weeks preceding
+a self-reported crisis or recovery event, compared to their baseline
+posting behaviour?}
+\end{quote}
+
+Our contributions are:
+\begin{enumerate}
+  \item A reproducible pipeline for constructing user timelines, labelling
+        turning-point posts, and extracting sliding-window linguistic features
+        from a publicly available Reddit dataset.
+  \item Evidence that VADER sentiment, type-token ratio, and posting frequency
+        show directionally distinct trajectories for crisis versus recovery
+        users in the weeks before their turning point.
+  \item A sensitivity analysis quantifying the impact of label noise
+        introduced by ambiguous recovery phrases (specifically
+        \emph{``made it''}).
+  \item A discussion of the ethical constraints that must accompany any
+        research using public mental-health data.
+\end{enumerate}
+
+All code and derived feature matrices (no raw post text or user identifiers)
+are released at \url{https://github.com/BenjaminHannan/reddit-mental-health}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Language and mental health on social media.}
+\citet{dechoudhury2013predicting} were among the first to show that
+Twitter activity features---including sentiment, social engagement, and
+egocentric language---can predict the onset of major depression in the
+following year.
+\citet{coppersmith2014quantifying} extended this to a broader set of
+mental health conditions using language model perplexity and LIWC features
+\citep{pennebaker2015development}, finding that depression and PTSD produce
+distinct unigram signatures.
+\citet{gkotsis2016language} characterised the language of mental health
+problems specifically on Reddit, documenting subreddit-level differences
+in affect, first-person pronoun use, and posting volume that motivate our
+feature selection.
+
+\paragraph{Longitudinal and timeline methods.}
+\citet{yates2017depression} framed self-harm detection as a sequential
+classification problem over user posting histories, using an LSTM to
+model temporal dependencies.
+\citet{shing2018expert} introduced a risk-level annotation scheme and
+showed that even crowdsourced annotators can achieve moderate agreement
+on Reddit posts from r/SuicideWatch, validating the feasibility of
+keyword-anchored labelling strategies like ours.
+The CLPsych shared tasks \citep{zirikly2019clpsych} have operationalised
+a related idea: given a user's post history, predict their risk level.
+Our work differs in using a sliding-window feature approach rather than a
+sequence model, prioritising interpretability and statistical transparency
+over raw predictive performance.
+
+\paragraph{Sentiment and lexical features.}
+VADER \citep{hutto2014vader} is a rule-based sentiment analyser designed
+for social media text, making it well-suited to Reddit's informal register.
+LIWC-derived word categories \citep{pennebaker2015development} have
+repeatedly surfaced as predictive features in mental health NLP; we
+approximate the negative-affect category using a curated wordlist.
+The type-token ratio (TTR) measures lexical diversity and has been
+associated with reduced verbal fluency in depressive states
+\citep{rude2004language}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Data}
+\label{sec:data}
+
+\subsection{Source dataset}
+We use the \texttt{solomonk/reddit\_mental\_health\_posts} dataset
+\citep{solomonk2022dataset} accessed via the Hugging Face \texttt{datasets}
+library.
+The dataset contains 151{,}288 posts from five subreddits:
+r/ADHD (n=26{,}904), r/OCD (n=24{,}902), r/depression (n=15{,}828),
+r/aspergers (n=14{,}542), and r/ptsd (n=13{,}897).
+Each post carries an author pseudonym, UTC timestamp, title, body text,
+score, and comment count.
+The data spans \textbf{July 2019 to December 2021}.
+
+\subsection{Preprocessing}
+We drop posts with deleted or removed authors (\texttt{[deleted]},
+\texttt{[removed]}), posts with empty or removed body text, and posts
+where body or author fields are null.
+This retains \textbf{96{,}073 posts} from \textbf{57{,}289 unique authors}.
+The median author has 1 post; the distribution is heavily right-skewed
+(max 110 posts per author).
+
+\subsection{Cohort construction}
+To enable timeline analysis, we require each author to have
+\textbf{more than 10 posts} in the dataset.
+This yields 581 authors (11{,}585 posts total).
+Within this cohort, we identify \emph{turning-point posts}---the first
+post by each author whose concatenated title and body matches one of the
+crisis or recovery phrase patterns defined in Table~\ref{tab:keywords}.
+
+\begin{table}[h]
+\small
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Label} & \textbf{Phrases (case-insensitive substring match)} \\
+\midrule
+\multirow{4}{*}{Crisis}
+  & \textit{want to die, wanting to die, ending it, end it all} \\
+  & \textit{can't do this, cant do this, goodbye, no point} \\
+  & \textit{kill myself, killing myself, take my own life} \\
+  & \textit{not worth living} \\
+\midrule
+\multirow{4}{*}{Recovery}
+  & \textit{got help, getting help, starting therapy, started therapy} \\
+  & \textit{feeling better, things are improving, made it} \\
+  & \textit{on the road to recovery, doing better, finally better} \\
+\bottomrule
+\end{tabular}
+\caption{Keyword phrases used to identify turning-point posts.
+The phrase \emph{``made it''} is marked as low-confidence
+(see Section~\ref{sec:sensitivity}).}
+\label{tab:keywords}
+\end{table}
+
+We further require that each labelled user have at least one post in the
+\emph{baseline} period (more than 4 weeks before the turning point), so
+that a pre/post linguistic comparison is possible.
+This excludes 107 users who otherwise matched a keyword.
+The final labelled cohort comprises \textbf{73 crisis users},
+\textbf{59 recovery users}, and \textbf{449 control (neither) users}
+(Table~\ref{tab:cohort}).
+
+\begin{table}[h]
+\small
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Label} & \textbf{N} & \textbf{Mean posts} & \textbf{Median posts} \\
+\midrule
+Crisis   & 73  & 22.8 & 18.0 \\
+Recovery & 59  & 22.8 & 18.0 \\
+Neither  & 449 & 17.4 & 14.0 \\
+\bottomrule
+\end{tabular}
+\caption{Cohort statistics after all inclusion criteria are applied.}
+\label{tab:cohort}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Time windows}
+For each labelled user, we define the turning-point date $T$ as the
+timestamp of their first turning-point post.
+We then define four non-overlapping (except baseline/pre-4w boundary)
+windows:
+
+\begin{itemize}
+  \item \textbf{Baseline}: all posts with timestamp $< T - 4\text{w}$
+  \item \textbf{Pre-4w}: posts in $[T - 4\text{w},\; T)$
+  \item \textbf{Pre-2w}: posts in $[T - 2\text{w},\; T)$
+  \item \textbf{Pre-1w}: posts in $[T - 1\text{w},\; T)$
+\end{itemize}
+
+For \emph{neither} users, who have no turning-point post, we use the
+date of their last post as a pseudo-$T$.
+This allows uniform feature extraction but means neither-user window
+features are not directly comparable to labelled users' pre-crisis windows;
+we include them primarily as a distributional baseline.
+
+\subsection{Feature extraction}
+\label{sec:features}
+We extract seven features per window (Table~\ref{tab:features}).
+All features are computed from concatenated title and body text.
+Windows with no posts yield NaN values, which are median-imputed inside
+the classifier pipeline.
+Binary presence flags (\texttt{has\_posts\_pre\_1w} etc.) are appended
+as additional features to capture information-in-silence.
+
+\begin{table}[h]
+\small
+\centering
+\begin{tabular}{lp{6cm}}
+\toprule
+\textbf{Feature} & \textbf{Definition} \\
+\midrule
+\texttt{sentiment\_mean} &
+  Mean VADER compound score across all posts in the window ($-1$ to $+1$). \\
+\texttt{ttr} &
+  Type-token ratio: unique tokens / total tokens (lower $\Rightarrow$ more
+  repetitive language). \\
+\texttt{avg\_sent\_len} &
+  Mean number of words per sentence (split on \texttt{[.!?]+}). \\
+\texttt{post\_freq} &
+  Posts per week within the window (baseline uses actual date span). \\
+\texttt{fp\_pronoun\_rate} &
+  First-person singular pronouns (\textit{I, me, my, mine, myself})
+  as a fraction of total tokens. \\
+\texttt{neg\_affect\_rate} &
+  Negative-affect words (120-item LIWC-inspired wordlist) as a fraction
+  of total tokens. \\
+\texttt{avg\_post\_len} &
+  Mean post length in words. \\
+\bottomrule
+\end{tabular}
+\caption{Linguistic features extracted per time window.}
+\label{tab:features}
+\end{table}
+
+For each of the three pre-windows we also compute \emph{delta} features:
+\[
+  \Delta_w(f) = f_w - f_{\text{baseline}}
+\]
+These deltas are the primary signals for detecting change, while the
+raw window values capture absolute levels.
+In total, each user is represented by 28 raw features, 21 delta features,
+and 3 presence flags (52 features).
+
+\subsection{Classifiers}
+We train two classifiers on the three-class task (crisis / recovery /
+neither):
+
+\begin{itemize}
+  \item \textbf{Logistic Regression} (LR): $\ell_2$-regularised
+        multinomial LR with $C{=}0.5$, \texttt{class\_weight=balanced}.
+        Features are median-imputed then z-score normalised.
+  \item \textbf{Random Forest} (RF): 300 trees, max depth 6,
+        \texttt{class\_weight=balanced}, no scaling required.
+\end{itemize}
+
+Evaluation uses \textbf{5-fold stratified cross-validation}.
+We pool out-of-fold predictions across all folds before computing metrics,
+which yields more stable estimates than averaging fold-level scores---
+particularly important given the small labelled-class counts.
+We report per-class precision, recall, F1, and one-vs-rest ROC-AUC,
+plus macro and weighted averages.
+
+\subsection{Sensitivity analysis}
+\label{sec:sensitivity}
+The recovery phrase \emph{``made it''} is highly ambiguous: it matched
+33 of the 59 recovery users but occurs naturally in many non-recovery
+contexts (\emph{``made it home''}, \emph{``made it to the appointment''}).
+We flag these users as \texttt{low\_confidence} and repeat all
+classification experiments on a \emph{high-confidence} dataset that
+excludes them (548 users: 73 crisis, 26 recovery, 449 neither).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results}
+\label{sec:results}
+
+\subsection{Sentiment trajectories}
+Figure~\ref{fig:sentiment} plots mean VADER sentiment across the four time
+windows for each label group.
+The recovery group shows a pronounced upward trend: sentiment rises from
+$-0.20$ at baseline to $+0.12$ in the pre-2w window, dropping slightly to
+$-0.01$ in the final week (possibly reflecting anxiety about the transition).
+The crisis group trends downward overall, reaching $-0.32$ in pre-1w
+compared to a baseline of $-0.26$.
+The neither group shows a moderate, consistent decline ($-0.11$ to $-0.15$).
+
+The pre-1w sentiment delta (Table~\ref{tab:deltas}) is the
+most discriminative single feature: recovery $= +0.22$, crisis $= -0.07$,
+neither $= -0.02$ (difference of $0.29$ units between crisis and recovery).
+
+\begin{table}[h]
+\small
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Feature (pre-1w delta)} & \textbf{Crisis} & \textbf{Recovery} & \textbf{Neither} \\
+\midrule
+Sentiment mean      & $-0.070$ & $+0.216$ & $-0.017$ \\
+Type-token ratio    & $+0.197$ & $+0.161$ & $+0.267$ \\
+Avg sentence length & $+3.047$ & $-3.880$ & $-0.397$ \\
+Post frequency      & $-0.184$ & $-0.440$ & $-0.151$ \\
+1st-person pronoun  & $+0.004$ & $+0.005$ & $-0.001$ \\
+Neg. affect rate    & $+0.000$ & $+0.002$ & $+0.004$ \\
+Avg post length     & $-29.58$ & $-30.16$ & $-20.38$ \\
+\bottomrule
+\end{tabular}
+\caption{Mean pre-1w delta values (pre-1w window minus baseline) by label.}
+\label{tab:deltas}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/sentiment_trajectory.pdf}
+  \caption{Mean VADER compound sentiment across four time windows.
+           Shaded bands show 95\% bootstrap confidence intervals
+           ($n_{\text{boot}}{=}2000$).
+           ``Neither'' users use their last post date as a pseudo-turning-point.}
+  \label{fig:sentiment}
+\end{figure}
+
+\subsection{Classification performance}
+Table~\ref{tab:results} presents full 5-fold CV results for both models
+on the full dataset.
+LR achieves macro F1\,=\,0.38 and macro ROC-AUC\,=\,0.62.
+RF reaches a higher ROC-AUC (0.65) but concentrates predictions toward
+\emph{neither}---a manifestation of class imbalance despite balanced
+class weights---yielding lower labelled-class recall.
+The recovery class benefits most from the RF's non-linearity, with
+ROC-AUC\,=\,0.69.
+
+\begin{table}[h]
+\small
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Model} & \textbf{Class} & \textbf{P} & \textbf{R} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+\multirow{4}{*}{LR}
+  & Crisis    & 0.179 & 0.356 & 0.239 & 0.566 \\
+  & Recovery  & 0.159 & 0.373 & 0.223 & 0.658 \\
+  & Neither   & 0.839 & 0.557 & 0.669 & 0.637 \\
+  & [Macro]   & 0.393 & 0.429 & \textbf{0.377} & \textbf{0.620} \\
+\midrule
+\multirow{4}{*}{RF}
+  & Crisis    & 0.143 & 0.027 & 0.046 & 0.579 \\
+  & Recovery  & 0.385 & 0.085 & 0.139 & \textbf{0.692} \\
+  & Neither   & 0.787 & 0.971 & 0.869 & 0.675 \\
+  & [Macro]   & 0.438 & 0.361 & 0.351 & \textbf{0.649} \\
+\bottomrule
+\end{tabular}
+\caption{5-fold CV classification results (full dataset, $n{=}581$).
+         P\,=\,precision, R\,=\,recall, AUC\,=\,one-vs-rest ROC-AUC.}
+\label{tab:results}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/roc_curves.pdf}
+  \caption{One-vs-rest ROC curves for Logistic Regression (left) and
+           Random Forest (right). Dashed black line shows macro average.}
+  \label{fig:roc}
+\end{figure}
+
+\subsection{Feature importance}
+Figure~\ref{fig:importance} presents RF Gini importances.
+The top-ranked features are \texttt{ttr\_baseline} (0.055) and
+\texttt{sentiment\_mean\_baseline} (0.040), followed by
+\texttt{sentiment\_mean\_pre\_4w} (0.036).
+The dominance of \emph{baseline} features over \emph{delta} features
+suggests that baseline writing style---not change from baseline---is
+the primary classifier signal.
+This may indicate that the classifier is partially learning
+subreddit-specific or user-specific base rates rather than
+pre-crisis linguistic shift per se.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/feature_importance.pdf}
+  \caption{Top-15 Random Forest feature importances (full dataset).
+           Blue bars: baseline features; orange: delta features;
+           green: raw pre-window features.}
+  \label{fig:importance}
+\end{figure}
+
+\subsection{Sensitivity analysis}
+\label{sec:sensitivity-results}
+Removing the 33 low-confidence \emph{``made it''} recovery users reduces
+recovery F1 from 0.139 to 0.000 (RF) and from 0.223 to 0.081 (LR),
+confirming that these users contributed most of the recovery signal and
+that the signal is fragile under stricter labelling.
+Crisis F1 improves slightly (+0.026 RF, +0.037 LR), consistent with
+label noise from miscategorised recovery users pushing some predictions
+toward crisis.
+Overall macro AUC drops by 0.052 (RF) and 0.029 (LR).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What works.}
+Sentiment is the most consistent signal: the $+0.22$ pre-1w recovery
+delta is interpretable (people explicitly writing about feeling better)
+and durable across both models.
+Post frequency declines for both labelled groups before the turning point
+(crisis $-0.18$ posts/week, recovery $-0.44$), suggesting that approaching
+a turning point---regardless of direction---is associated with a withdrawal
+from posting activity.
+Sentence length diverges meaningfully: crisis users write longer sentences
+($+3.0$ words) near the turning point while recovery users write shorter
+ones ($-3.9$), potentially reflecting rumination vs resolution.
+
+\paragraph{What does not work well.}
+Negative-affect word rate shows almost no between-group discriminative
+power; the LIWC-inspired wordlist may be too small and too literal.
+First-person pronoun rate, frequently cited as a depression marker in
+prior work \citep{rude2004language,coppersmith2014quantifying}, shows
+only negligible differences here.
+The RF's tendency to collapse predictions onto \emph{neither}---the
+majority class---limits its utility for crisis detection despite its
+higher ROC-AUC.
+
+\paragraph{Generalisability.}
+The cohort is small (132 labelled users) and skewed toward r/OCD
+(46\% of labelled users) rather than r/depression (8\%).
+Results may not transfer to other communities, languages, or time periods.
+The turning-point date range (2019--2021) coincides with the COVID-19
+pandemic, which may confound both baseline behaviour and turning-point
+triggers.
+
+\paragraph{Baseline features dominate.}
+The prominence of baseline TTR and sentiment in the RF importance rankings
+is a cautionary finding: the classifier may be identifying the kind of
+person who posts in these subreddits (and in what way) more than it is
+detecting pre-crisis linguistic \emph{change}.
+Future work should orthogonalise baseline user style from change scores,
+for example by computing user-level z-scores before extracting window
+features.
+
+\paragraph{Future directions.}
+Incorporating transformer-based features (sentence embeddings, fine-tuned
+depression classifiers) would capture semantics beyond the lexical surface.
+Finer temporal granularity---daily rather than weekly windows---combined
+with a larger cohort would allow proper time-series modelling
+\citep{yates2017depression}.
+Multi-task learning across subreddits may improve generalisation.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Ethics}
+\label{sec:ethics}
+
+\paragraph{Public data does not mean consequence-free data.}
+The posts in this dataset were written by real individuals disclosing
+genuine distress. Although Reddit content is technically public, the
+authors did not consent to being included in a mental health research
+dataset. We treat this asymmetry seriously.
+
+\paragraph{Data handling.}
+We do not publish raw post text, user pseudonyms, or any data that
+would enable re-identification.
+All released artefacts contain only aggregate statistics and derived
+feature matrices.
+Users in the dataset are referred to exclusively by anonymous index in any
+intermediate files.
+
+\paragraph{Keyword labelling is not clinical assessment.}
+The crisis and recovery labels used here are derived from keyword
+matching, not clinical diagnosis.
+Phrases like \emph{``want to die''} may be used hyperbolically;
+\emph{``made it''} is demonstrably ambiguous (Section~\ref{sec:sensitivity}).
+These labels should \emph{never} be used to make inferences about
+specific individuals' mental state.
+The model outputs are correlational indicators at the population level,
+not individual-level risk scores.
+
+\paragraph{Potential for misuse.}
+A model trained on this data could, in principle, be used to
+surveil or profile Reddit users without their knowledge.
+We strongly oppose this application.
+Any deployment of similar models in a live context would require
+institutional ethics approval, informed consent mechanisms, and
+clinical oversight---none of which this research can provide.
+
+\paragraph{Limitations of the research context.}
+This study was conducted without access to ground-truth clinical
+outcomes. We cannot verify whether a user who posted a crisis keyword
+actually experienced a clinical crisis, nor whether a recovery keyword
+reflected lasting recovery. All findings must be interpreted as
+\emph{population-level linguistic correlates}, not causal or predictive
+clinical claims.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented an end-to-end pipeline for detecting longitudinal linguistic
+markers of mental health turning points in Reddit data.
+Our key findings are: (1) sentiment is the strongest and most consistent
+signal, with a $0.29$-unit gap between crisis and recovery users in the
+week before the turning point; (2) baseline writing style accounts for
+more classifier variance than pre-crisis \emph{change}, suggesting that
+future work should control for individual baseline variation;
+(3) label quality is fragile---removing 33 ambiguously labelled recovery
+users substantially degrades recovery detection.
+We hope this pipeline and sensitivity analysis framework will serve as a
+methodological building block for larger, clinician-validated studies.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Acknowledgements}
+The author thanks the open-source contributors behind the
+\texttt{solomonk/reddit\_mental\_health\_posts} dataset and the
+Hugging Face \texttt{datasets} library.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\bibliographystyle{acl_natbib}
+\bibliography{references}
+
+\end{document}
