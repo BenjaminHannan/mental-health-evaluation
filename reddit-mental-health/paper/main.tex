@@ -217,9 +217,9 @@ The final labelled cohort comprises \textbf{73 crisis users},
 \toprule
 \textbf{Label} & \textbf{N} & \textbf{Mean posts} & \textbf{Median posts} \\
 \midrule
-Crisis   & 73  & 22.8 & 18.0 \\
-Recovery & 59  & 22.8 & 18.0 \\
-Neither  & 449 & 17.4 & 14.0 \\
+Crisis   & 73  & 23.5 & 21.0 \\
+Recovery & 59  & 22.1 & 16.0 \\
+Neither  & 449 & 19.1 & 15.0 \\
 \bottomrule
 \end{tabular}
 \caption{Cohort statistics after all inclusion criteria are applied.}
@@ -490,6 +490,50 @@ detecting pre-crisis linguistic \emph{change}.
 Future work should orthogonalise baseline user style from change scores,
 for example by computing user-level z-scores before extracting window
 features.
+
+\paragraph{Limitations.}
+Four limitations bound the conclusions that can be drawn from this study.
+
+\textbf{(1) Keyword-based label noise.}
+Turning-point labels are derived from substring matching, not clinical
+annotation.
+False positives are inevitable: \emph{``want to die''} is used
+hyperbolically; \emph{``goodbye''} may mark the end of a post, not a
+person; \emph{``made it''} is unambiguously ambiguous (Section~\ref{sec:sensitivity}).
+False negatives are also present---users experiencing genuine crises who
+never used the listed phrases are silently assigned to \emph{neither}.
+The sensitivity analysis provides a partial bound on this noise for
+recovery labels, but no comparable bound exists for crisis false negatives.
+
+\textbf{(2) OCD-dominated cohort.}
+r/OCD accounts for 46\% of labelled users (61 of 132), while r/depression
+contributes only 8\% (10 users).
+This matters because OCD, depression, PTSD, ADHD, and autism-spectrum
+conditions have distinct linguistic profiles \citep{coppersmith2014quantifying,gkotsis2016language}.
+A model trained on this cohort primarily reflects the language patterns of
+OCD-posting users and may generalise poorly to depression-specific
+early-warning contexts---precisely the application most discussed in
+prior work.
+
+\textbf{(3) Data ends December 2021.}
+The dataset spans July 2019--December 2021, entirely overlapping with the
+COVID-19 pandemic.
+Pandemic conditions are known to have elevated baseline anxiety, disrupted
+help-seeking behaviour, and changed platform usage patterns.
+We cannot disentangle longitudinal linguistic trends from period effects,
+and results may not transfer to pre-pandemic or post-pandemic populations.
+
+\textbf{(4) Baseline style dominates temporal shift detection.}
+The top two Random Forest predictors are both baseline features
+(\texttt{ttr\_baseline}, \texttt{sentiment\_mean\_baseline}), not delta
+features.
+This indicates that the classifiers are partly exploiting stable
+individual writing styles rather than detecting pre-crisis linguistic
+\emph{change}---the core theoretical claim of the study.
+Until individual-level style is explicitly controlled for (e.g.\ by
+normalising each feature by the user's own baseline variance), reported
+performance likely overestimates the model's ability to detect
+deterioration trajectories.
 
 \paragraph{Future directions.}
 Incorporating transformer-based features (sentence embeddings, fine-tuned
