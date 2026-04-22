@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MH Reddit Scraper — Options</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      body { width: 520px; }
+      .opt { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+      .opt label { flex: 1; font-size: 12px; color: var(--muted); }
+      .opt input, .opt select { width: 220px; }
+      .note { font-size: 11px; color: var(--muted); line-height: 1.45; margin-top: 4px; }
+      #save { margin-top: 12px; }
+      #saved-msg { margin-left: 10px; color: var(--accent); font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <header><h1>Scraper options</h1></header>
+
+    <div class="opt">
+      <label>
+        Output folder under ~/Downloads
+        <div class="note">Only alphanumerics, <code>-</code>, <code>_</code>, and <code>/</code> allowed.</div>
+      </label>
+      <input id="outputFolder" type="text" />
+    </div>
+
+    <div class="opt">
+      <label>
+        Rate limit (ms between requests)
+        <div class="note">Minimum 500 ms. Default 1100 ms keeps us well under Reddit's 60 req/min public limit.</div>
+      </label>
+      <input id="rateLimitMs" type="number" min="500" step="50" />
+    </div>
+
+    <div class="opt">
+      <label>
+        MIN_POSTS for "qualified" users
+        <div class="note">Mirrors <code>MIN_POSTS</code> in <code>reddit-mental-health/src/label_users.py</code>.</div>
+      </label>
+      <input id="minPosts" type="number" min="1" step="1" />
+    </div>
+
+    <div class="opt">
+      <label>
+        Default subreddits (comma separated)
+        <div class="note">Used when the popup is opened with no prior selection.</div>
+      </label>
+      <input id="subreddits" type="text" />
+    </div>
+
+    <button id="save" class="primary">Save</button>
+    <span id="saved-msg"></span>
+
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

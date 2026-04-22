@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MH Reddit Scraper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Mental Health Reddit Scraper</h1>
+      <p class="sub">Public listings only. For research use.</p>
+    </header>
+
+    <section>
+      <label class="field-label">Subreddits</label>
+      <div id="sub-chips" class="chips"></div>
+      <div class="row">
+        <input id="add-sub" type="text" placeholder="add subreddit (no r/)" />
+        <button id="add-sub-btn" type="button">Add</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <label>
+        Listing
+        <select id="listing">
+          <option value="new" selected>new</option>
+          <option value="hot">hot</option>
+          <option value="top">top</option>
+        </select>
+      </label>
+      <label>
+        Top window
+        <select id="timeWindow">
+          <option value="hour">hour</option>
+          <option value="day">day</option>
+          <option value="week">week</option>
+          <option value="month" selected>month</option>
+          <option value="year">year</option>
+          <option value="all">all</option>
+        </select>
+      </label>
+      <label>
+        Listing pages
+        <input id="listingPageCap" type="number" min="1" max="10" value="2" />
+      </label>
+      <label>
+        History pages / user
+        <input id="userHistoryPageCap" type="number" min="0" max="10" value="2" />
+      </label>
+    </section>
+
+    <section class="status" id="status">
+      <div class="totals">
+        <span><strong id="t-posts">0</strong> posts</span>
+        <span><strong id="t-users">0</strong> users</span>
+        <span><strong id="t-qual">0</strong> qualified (&gt; MIN_POSTS)</span>
+      </div>
+      <div class="phase" id="phase">idle</div>
+    </section>
+
+    <footer>
+      <button id="run-btn" class="primary">Run scrape</button>
+      <button id="stop-btn">Stop</button>
+      <button id="export-btn">Export JSON</button>
+      <button id="clear-btn" class="danger">Clear dataset</button>
+      <a id="options-link" href="#">Options</a>
+    </footer>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
