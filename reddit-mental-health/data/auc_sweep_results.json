@@ -1,0 +1,446 @@
+{
+  "n": 505,
+  "n_features": 121,
+  "classes": [
+    "crisis",
+    "neither",
+    "recovery"
+  ],
+  "class_counts": {
+    "crisis": 68,
+    "neither": 383,
+    "recovery": 54
+  },
+  "gpu_enabled": true,
+  "phase_a": {
+    "results": {
+      "RandomForest": {
+        "auc": 0.6995197570193724,
+        "elapsed_sec": 1.26
+      },
+      "HistGBM": {
+        "auc": 0.7058481040786738,
+        "elapsed_sec": 7.81
+      },
+      "XGBoost_GPU": {
+        "auc": 0.7272966448943899,
+        "elapsed_sec": 8.29
+      },
+      "LightGBM_GPU": {
+        "error": "LightGBMError: CUDA Tree Learner was not enabled in this build.\nPlease recompile with CMake option -DUSE_CUDA=1"
+      },
+      "CatBoost_GPU": {
+        "auc": 0.7330931949396073,
+        "elapsed_sec": 15.94
+      }
+    },
+    "winner": "CatBoost_GPU"
+  },
+  "phase_b": {
+    "winner": "CatBoost_GPU",
+    "best_params": {
+      "iterations": 300,
+      "depth": 6,
+      "learning_rate": 0.1
+    },
+    "best_auc": 0.7354759911188653,
+    "runs": [
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 4,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7333892302494044,
+        "elapsed_sec": 5.76
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 4,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7341563862318298,
+        "elapsed_sec": 5.74
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 4,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7219908506031683,
+        "elapsed_sec": 5.72
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 6,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7300057203237933,
+        "elapsed_sec": 8.29
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 6,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7342186529830191,
+        "elapsed_sec": 8.4
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 6,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7354759911188653,
+        "elapsed_sec": 8.27
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 8,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7257069078656043,
+        "elapsed_sec": 13.69
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 8,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7336112193276435,
+        "elapsed_sec": 14.97
+      },
+      {
+        "params": {
+          "iterations": 300,
+          "depth": 8,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7325897015476185,
+        "elapsed_sec": 15.06
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 4,
+          "learning_rate": 0.03
+        },
+        "auc": 0.733124382242707,
+        "elapsed_sec": 10.48
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 4,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7311659540454022,
+        "elapsed_sec": 9.43
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 4,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7193489923567483,
+        "elapsed_sec": 9.02
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 6,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7290711585877517,
+        "elapsed_sec": 13.13
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 6,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7333684291866148,
+        "elapsed_sec": 14.02
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 6,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7311572583909326,
+        "elapsed_sec": 14.9
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 8,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7312997667336564,
+        "elapsed_sec": 24.56
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 8,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7331207486337611,
+        "elapsed_sec": 24.37
+      },
+      {
+        "params": {
+          "iterations": 500,
+          "depth": 8,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7319619141816265,
+        "elapsed_sec": 25.83
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 4,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7305382688515092,
+        "elapsed_sec": 16.65
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 4,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7275659790825949,
+        "elapsed_sec": 16.67
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 4,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7184375434266611,
+        "elapsed_sec": 16.46
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 6,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7287270363372557,
+        "elapsed_sec": 23.33
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 6,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7305024672210817,
+        "elapsed_sec": 22.76
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 6,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7287940435568481,
+        "elapsed_sec": 22.47
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 8,
+          "learning_rate": 0.03
+        },
+        "auc": 0.7311851010828888,
+        "elapsed_sec": 36.78
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 8,
+          "learning_rate": 0.05
+        },
+        "auc": 0.7343582300995029,
+        "elapsed_sec": 34.15
+      },
+      {
+        "params": {
+          "iterations": 800,
+          "depth": 8,
+          "learning_rate": 0.1
+        },
+        "auc": 0.7328028036238093,
+        "elapsed_sec": 34.88
+      }
+    ]
+  },
+  "phase_c": {
+    "dropped_variance": [],
+    "dropped_correlation": [
+      "interval_std_hr_baseline",
+      "cos_sim_pre_2w",
+      "cos_sim_pre_4w",
+      "fp_pronoun_rate_znorm_pre_1w",
+      "fp_pronoun_rate_znorm_pre_4w"
+    ],
+    "kept_features": [
+      "sentiment_mean_baseline",
+      "ttr_baseline",
+      "avg_sent_len_baseline",
+      "post_freq_baseline",
+      "fp_pronoun_rate_baseline",
+      "neg_affect_rate_baseline",
+      "avg_post_len_baseline",
+      "sentiment_mean_pre_4w",
+      "ttr_pre_4w",
+      "avg_sent_len_pre_4w",
+      "post_freq_pre_4w",
+      "fp_pronoun_rate_pre_4w",
+      "neg_affect_rate_pre_4w",
+      "avg_post_len_pre_4w",
+      "sentiment_mean_pre_2w",
+      "ttr_pre_2w",
+      "avg_sent_len_pre_2w",
+      "post_freq_pre_2w",
+      "fp_pronoun_rate_pre_2w",
+      "neg_affect_rate_pre_2w",
+      "avg_post_len_pre_2w",
+      "sentiment_mean_pre_1w",
+      "ttr_pre_1w",
+      "avg_sent_len_pre_1w",
+      "post_freq_pre_1w",
+      "fp_pronoun_rate_pre_1w",
+      "neg_affect_rate_pre_1w",
+      "avg_post_len_pre_1w",
+      "sentiment_mean_delta_pre_4w",
+      "ttr_delta_pre_4w",
+      "avg_sent_len_delta_pre_4w",
+      "post_freq_delta_pre_4w",
+      "fp_pronoun_rate_delta_pre_4w",
+      "neg_affect_rate_delta_pre_4w",
+      "avg_post_len_delta_pre_4w",
+      "sentiment_mean_delta_pre_2w",
+      "ttr_delta_pre_2w",
+      "avg_sent_len_delta_pre_2w",
+      "post_freq_delta_pre_2w",
+      "fp_pronoun_rate_delta_pre_2w",
+      "neg_affect_rate_delta_pre_2w",
+      "avg_post_len_delta_pre_2w",
+      "sentiment_mean_delta_pre_1w",
+      "ttr_delta_pre_1w",
+      "avg_sent_len_delta_pre_1w",
+      "post_freq_delta_pre_1w",
+      "fp_pronoun_rate_delta_pre_1w",
+      "neg_affect_rate_delta_pre_1w",
+      "avg_post_len_delta_pre_1w",
+      "sentiment_mean_znorm_pre_4w",
+      "ttr_znorm_pre_4w",
+      "avg_sent_len_znorm_pre_4w",
+      "post_freq_znorm_pre_4w",
+      "neg_affect_rate_znorm_pre_4w",
+      "avg_post_len_znorm_pre_4w",
+      "sentiment_mean_znorm_pre_2w",
+      "ttr_znorm_pre_2w",
+      "avg_sent_len_znorm_pre_2w",
+      "post_freq_znorm_pre_2w",
+      "fp_pronoun_rate_znorm_pre_2w",
+      "neg_affect_rate_znorm_pre_2w",
+      "avg_post_len_znorm_pre_2w",
+      "sentiment_mean_znorm_pre_1w",
+      "ttr_znorm_pre_1w",
+      "avg_sent_len_znorm_pre_1w",
+      "post_freq_znorm_pre_1w",
+      "neg_affect_rate_znorm_pre_1w",
+      "avg_post_len_znorm_pre_1w",
+      "has_posts_pre_4w",
+      "has_posts_pre_2w",
+      "has_posts_pre_1w",
+      "hour_entropy_baseline",
+      "late_night_rate_baseline",
+      "interval_mean_hr_baseline",
+      "max_gap_hr_baseline",
+      "weekend_rate_baseline",
+      "hour_entropy_pre_4w",
+      "late_night_rate_pre_4w",
+      "interval_mean_hr_pre_4w",
+      "interval_std_hr_pre_4w",
+      "max_gap_hr_pre_4w",
+      "weekend_rate_pre_4w",
+      "hour_entropy_pre_2w",
+      "late_night_rate_pre_2w",
+      "interval_mean_hr_pre_2w",
+      "interval_std_hr_pre_2w",
+      "max_gap_hr_pre_2w",
+      "weekend_rate_pre_2w",
+      "hour_entropy_pre_1w",
+      "late_night_rate_pre_1w",
+      "interval_mean_hr_pre_1w",
+      "interval_std_hr_pre_1w",
+      "max_gap_hr_pre_1w",
+      "weekend_rate_pre_1w",
+      "hour_entropy_delta_pre_4w",
+      "late_night_rate_delta_pre_4w",
+      "interval_mean_hr_delta_pre_4w",
+      "interval_std_hr_delta_pre_4w",
+      "max_gap_hr_delta_pre_4w",
+      "weekend_rate_delta_pre_4w",
+      "hour_entropy_delta_pre_2w",
+      "late_night_rate_delta_pre_2w",
+      "interval_mean_hr_delta_pre_2w",
+      "interval_std_hr_delta_pre_2w",
+      "max_gap_hr_delta_pre_2w",
+      "weekend_rate_delta_pre_2w",
+      "hour_entropy_delta_pre_1w",
+      "late_night_rate_delta_pre_1w",
+      "interval_mean_hr_delta_pre_1w",
+      "interval_std_hr_delta_pre_1w",
+      "max_gap_hr_delta_pre_1w",
+      "weekend_rate_delta_pre_1w",
+      "l2_dist_pre_4w",
+      "l2_dist_pre_2w",
+      "cos_sim_pre_1w",
+      "l2_dist_pre_1w"
+    ],
+    "auc_full": 0.7354759911188653,
+    "auc_filtered": 0.7273281732137865,
+    "winner": "full"
+  },
+  "phase_d": {
+    "auc": 0.7359025895112747,
+    "elapsed_sec": 62.75
+  },
+  "phase_e": {
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "aucs": [
+      0.7257682400353501,
+      0.7155996206907856,
+      0.7075816604625268,
+      0.7265008029854965,
+      0.7149167319021058
+    ],
+    "mean": 0.7180734112152529,
+    "std": 0.008006129219574389
+  }
+}
