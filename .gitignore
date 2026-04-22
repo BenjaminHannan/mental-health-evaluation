@@ -1,0 +1,32 @@
+# Local agent/IDE state
+.claude/
+.idea/
+.vscode/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+
+# Data / derived artifacts
+*.npz
+*.log
+reddit-mental-health/data/*.parquet
+reddit-mental-health/data/raw/
+reddit-mental-health/data/cache/
+reddit-mental-health/data/auc_sweep_run.log
+reddit-mental-health/data/mentalbert_embeddings.npz
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.bbl
+*.blg
+*.synctex.gz
