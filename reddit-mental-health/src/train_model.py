@@ -34,7 +34,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, StackingClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -42,9 +42,28 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
     roc_auc_score,
 )
-from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+# ── Optional gradient-boosting backends ───────────────────────────────────
+try:
+    from catboost import CatBoostClassifier
+    _HAS_CATBOOST = True
+except ImportError:
+    _HAS_CATBOOST = False
+
+try:
+    from xgboost import XGBClassifier
+    _HAS_XGBOOST = True
+except ImportError:
+    _HAS_XGBOOST = False
+
+try:
+    from lightgbm import LGBMClassifier
+    _HAS_LIGHTGBM = True
+except ImportError:
+    _HAS_LIGHTGBM = False
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -166,6 +185,178 @@ def make_rf() -> Pipeline:
             n_jobs=-1,
         )),
     ])
+
+
+def make_catboost() -> Pipeline:
+    """CatBoost pipeline.  Handles NaNs internally, so no imputer needed,
+    but we keep one for consistency with the other pipelines."""
+    if not _HAS_CATBOOST:
+        raise RuntimeError("catboost not installed (pip install catboost)")
+    return Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("clf", CatBoostClassifier(
+            iterations=500,
+            depth=5,
+            learning_rate=0.05,
+            loss_function="MultiClass",
+            auto_class_weights="Balanced",
+            random_seed=RANDOM_STATE,
+            verbose=0,
+            allow_writing_files=False,
+        )),
+    ])
+
+
+def make_xgboost() -> Pipeline:
+    """XGBoost pipeline.  Multiclass softprob objective."""
+    if not _HAS_XGBOOST:
+        raise RuntimeError("xgboost not installed (pip install xgboost)")
+    return Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("clf", XGBClassifier(
+            n_estimators=400,
+            max_depth=4,
+            learning_rate=0.05,
+            objective="multi:softprob",
+            num_class=3,
+            eval_metric="mlogloss",
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+            tree_method="hist",
+        )),
+    ])
+
+
+def make_lightgbm() -> Pipeline:
+    """LightGBM pipeline.  Class-weight balanced for imbalance."""
+    if not _HAS_LIGHTGBM:
+        raise RuntimeError("lightgbm not installed (pip install lightgbm)")
+    return Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("clf", LGBMClassifier(
+            n_estimators=400,
+            max_depth=-1,
+            num_leaves=31,
+            learning_rate=0.05,
+            objective="multiclass",
+            num_class=3,
+            class_weight="balanced",
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+            verbose=-1,
+        )),
+    ])
+
+
+def make_stacking() -> Pipeline:
+    """Stacking ensemble: LR + RF + (CatBoost|XGBoost) → LR meta-model.
+
+    Uses whichever boosting library is available as the third base model.
+    Out-of-fold predictions from the base learners become inputs to a
+    penalised logistic regression meta-learner.
+    """
+    base_estimators = [
+        ("lr", LogisticRegression(
+            max_iter=1000, class_weight="balanced", C=0.5,
+            solver="lbfgs", random_state=RANDOM_STATE,
+        )),
+        ("rf", RandomForestClassifier(
+            n_estimators=300, max_depth=6, class_weight="balanced",
+            random_state=RANDOM_STATE, n_jobs=-1,
+        )),
+    ]
+    if _HAS_CATBOOST:
+        base_estimators.append(("cb", CatBoostClassifier(
+            iterations=500, depth=5, learning_rate=0.05,
+            loss_function="MultiClass", auto_class_weights="Balanced",
+            random_seed=RANDOM_STATE, verbose=0, allow_writing_files=False,
+        )))
+    elif _HAS_XGBOOST:
+        base_estimators.append(("xgb", XGBClassifier(
+            n_estimators=400, max_depth=4, learning_rate=0.05,
+            objective="multi:softprob", num_class=3, eval_metric="mlogloss",
+            random_state=RANDOM_STATE, n_jobs=-1, tree_method="hist",
+        )))
+
+    stack = StackingClassifier(
+        estimators=base_estimators,
+        final_estimator=LogisticRegression(
+            max_iter=1000, C=0.5, class_weight="balanced",
+            random_state=RANDOM_STATE,
+        ),
+        cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE),
+        passthrough=False,
+        n_jobs=1,
+    )
+
+    return Pipeline([
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler",  StandardScaler()),
+        ("clf",     stack),
+    ])
+
+
+# ── Hyperparameter search ─────────────────────────────────────────────────
+
+def _run_grid_search(
+    name: str,
+    base_pipeline: Pipeline,
+    param_grid: dict,
+    X: pd.DataFrame,
+    y: np.ndarray,
+    n_jobs: int = 1,
+) -> Pipeline:
+    """GridSearchCV on the ``clf__`` params of a pipeline, 5-fold CV, macro-AUC."""
+    cv = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE)
+    gs = GridSearchCV(
+        base_pipeline,
+        param_grid,
+        scoring="roc_auc_ovr",
+        cv=cv,
+        n_jobs=n_jobs,
+        refit=True,
+        verbose=0,
+    )
+    print(f"[hyperparam] {name}: grid size = "
+          f"{int(np.prod([len(v) for v in param_grid.values()]))}")
+    gs.fit(X, y)
+    print(f"[hyperparam] {name}: best params = {gs.best_params_}")
+    print(f"[hyperparam] {name}: best macro AUC = {gs.best_score_:.4f}")
+    return gs.best_estimator_
+
+
+def tune_lr(X: pd.DataFrame, y: np.ndarray) -> Pipeline:
+    return _run_grid_search("LogReg", make_lr(), {
+        "clf__C": [0.1, 0.3, 0.5, 1.0, 3.0],
+    }, X, y)
+
+
+def tune_rf(X: pd.DataFrame, y: np.ndarray) -> Pipeline:
+    return _run_grid_search("RandForest", make_rf(), {
+        "clf__n_estimators": [200, 500, 1000],
+        "clf__max_depth":    [3, 6, 10, None],
+        "clf__min_samples_leaf": [1, 3, 5],
+    }, X, y, n_jobs=-1)
+
+
+def tune_catboost(X: pd.DataFrame, y: np.ndarray) -> Pipeline:
+    if not _HAS_CATBOOST:
+        raise RuntimeError("catboost not installed")
+    return _run_grid_search("CatBoost", make_catboost(), {
+        "clf__depth": [3, 5, 7],
+        "clf__learning_rate": [0.03, 0.05, 0.1],
+        "clf__iterations": [300, 500, 800],
+    }, X, y)
+
+
+def tune_xgboost(X: pd.DataFrame, y: np.ndarray) -> Pipeline:
+    if not _HAS_XGBOOST:
+        raise RuntimeError("xgboost not installed")
+    return _run_grid_search("XGBoost", make_xgboost(), {
+        "clf__max_depth": [3, 4, 6],
+        "clf__learning_rate": [0.03, 0.05, 0.1],
+        "clf__n_estimators": [200, 400, 800],
+    }, X, y, n_jobs=-1)
 
 
 # ── Cross-validation evaluation ────────────────────────────────────────────
@@ -380,12 +571,40 @@ def _jsonify(obj):
     return obj
 
 
+def _build_model_dict(model_names: list[str] | None) -> dict[str, Pipeline]:
+    """Resolve a list of short names to fresh pipeline instances."""
+    if model_names is None:
+        model_names = ["LogReg", "RandForest"]
+    registry = {
+        "LogReg":     make_lr,
+        "RandForest": make_rf,
+    }
+    if _HAS_CATBOOST:
+        registry["CatBoost"] = make_catboost
+    if _HAS_XGBOOST:
+        registry["XGBoost"]  = make_xgboost
+    if _HAS_LIGHTGBM:
+        registry["LightGBM"] = make_lightgbm
+    registry["Stacking"] = make_stacking
+
+    models: dict[str, Pipeline] = {}
+    for name in model_names:
+        if name not in registry:
+            print(f"[train_model] WARNING: unknown model {name!r}, skipping "
+                  f"(available: {list(registry)})")
+            continue
+        models[name] = registry[name]()
+    return models
+
+
 def run_experiment(
     features_path: Path | None,
     results_path: Path,
     label: str = "raw",
     feature_cols: list[str] | None = None,
     df: pd.DataFrame | None = None,
+    model_names: list[str] | None = None,
+    hyperparam_search: bool = False,
 ) -> dict:
     """Train LR + RF with 5-fold CV on the given feature matrix.
 
@@ -419,10 +638,22 @@ def run_experiment(
         print(f"[train_model] dataset={name:12s}  n={len(y)}  "
               f"n_features={X.shape[1]}  {counts}")
 
-    models: dict[str, Pipeline] = {
-        "LogReg":     make_lr(),
-        "RandForest": make_rf(),
-    }
+    models = _build_model_dict(model_names)
+
+    # Optional hyperparameter search — fit on the full dataset, then use the
+    # tuned estimators in place of the default pipelines below.
+    if hyperparam_search:
+        print(f"\n[hyperparam] Running grid search on the full dataset "
+              f"({len(datasets['full'][1])} users)...")
+        X_full, y_full, _ = datasets["full"]
+        if "LogReg" in models:
+            models["LogReg"] = tune_lr(X_full, y_full)
+        if "RandForest" in models:
+            models["RandForest"] = tune_rf(X_full, y_full)
+        if "CatBoost" in models:
+            models["CatBoost"] = tune_catboost(X_full, y_full)
+        if "XGBoost" in models:
+            models["XGBoost"] = tune_xgboost(X_full, y_full)
 
     all_results: dict[str, dict] = {}
     for model_name, pipeline in models.items():
@@ -490,6 +721,27 @@ def load_all_features() -> pd.DataFrame:
         mb = pd.read_parquet(mb_path)
         mb = mb.drop(columns=[c for c in drop if c in mb.columns])
         merged = merged.merge(mb, on="author", how="inner")
+    return merged
+
+
+def load_raw_plus_bonus_features() -> pd.DataFrame:
+    """Merge raw linguistic features with bonus features (readability, punct, pronouns)."""
+    raw   = pd.read_parquet(FEATURES_IN)
+    bonus = pd.read_parquet(DATA_DIR / "features_bonus.parquet")
+    drop  = {"label", "low_confidence", "n_posts", "tp_date"}
+    bonus = bonus.drop(columns=[c for c in drop if c in bonus.columns])
+    return raw.merge(bonus, on="author", how="inner")
+
+
+def load_all_features_plus_bonus() -> pd.DataFrame:
+    """Kitchen-sink+bonus: raw + znorm + temporal + mentalbert + bonus."""
+    merged    = load_all_features()
+    bonus_p   = DATA_DIR / "features_bonus.parquet"
+    drop      = {"label", "low_confidence", "n_posts", "tp_date"}
+    if bonus_p.exists():
+        bonus = pd.read_parquet(bonus_p)
+        bonus = bonus.drop(columns=[c for c in drop if c in bonus.columns])
+        merged = merged.merge(bonus, on="author", how="inner")
     return merged
 
 
@@ -561,10 +813,28 @@ def main() -> None:
     parser.add_argument("--kitchen-sink", dest="kitchen_sink",
                         action="store_true",
                         help="Shortcut: run on raw+znorm+temporal+mentalbert merged features")
+    parser.add_argument("--bonus", action="store_true",
+                        help="Shortcut: run on raw+bonus merged features")
+    parser.add_argument("--everything", action="store_true",
+                        help="Kitchen-sink + bonus features (all feature groups)")
+    parser.add_argument("--models", type=str, default=None,
+                        help="Comma-separated list of models to run. "
+                             "Choices: LogReg,RandForest,CatBoost,XGBoost,"
+                             "LightGBM,Stacking. Default: LogReg,RandForest")
+    parser.add_argument("--hyperparam-search", dest="hyperparam_search",
+                        action="store_true",
+                        help="Run grid-search hyperparameter tuning for each model")
     parser.add_argument("--all",      action="store_true",
                         help="Run all variants (raw, znorm, deltas, "
                              "combined, temporal, kitchen_sink) side-by-side")
     args = parser.parse_args()
+
+    model_names = None
+    if args.models:
+        model_names = [m.strip() for m in args.models.split(",") if m.strip()]
+
+    common = {"model_names": model_names,
+              "hyperparam_search": args.hyperparam_search}
 
     if args.all:
         experiments: dict[str, dict] = {}
@@ -572,11 +842,13 @@ def main() -> None:
             FEATURES_IN,
             RESULTS_OUT,
             label="raw",
+            **common,
         )
         experiments["znorm"] = run_experiment(
             DATA_DIR / "features_znorm.parquet",
             DATA_DIR / "model_results_znorm.json",
             label="znorm",
+            **common,
         )
         combined_df = load_combined_features()
         combined_cols = discover_feature_cols(build_presence_flags(combined_df))
@@ -586,12 +858,14 @@ def main() -> None:
             label="combined",
             df=combined_df,
             feature_cols=combined_cols,
+            **common,
         )
         experiments["deltas"] = run_experiment(
             FEATURES_IN,
             DATA_DIR / "model_results_deltas.json",
             label="deltas",
             feature_cols=DELTA_COLS + PRESENCE_COLS,
+            **common,
         )
         temp_df = load_raw_plus_temporal_features()
         temp_cols = discover_feature_cols(build_presence_flags(temp_df))
@@ -601,6 +875,7 @@ def main() -> None:
             label="temporal",
             df=temp_df,
             feature_cols=temp_cols,
+            **common,
         )
         mb_df = load_raw_plus_mentalbert_features()
         mb_cols = discover_feature_cols(build_presence_flags(mb_df))
@@ -610,6 +885,7 @@ def main() -> None:
             label="mentalbert",
             df=mb_df,
             feature_cols=mb_cols,
+            **common,
         )
         all_df = load_all_features()
         all_cols = discover_feature_cols(build_presence_flags(all_df))
@@ -619,6 +895,7 @@ def main() -> None:
             label="kitchen_sink",
             df=all_df,
             feature_cols=all_cols,
+            **common,
         )
         print_experiment_comparison(experiments)
         return
@@ -629,6 +906,7 @@ def main() -> None:
             DATA_DIR / "model_results_deltas.json",
             label="deltas",
             feature_cols=DELTA_COLS + PRESENCE_COLS,
+            **common,
         )
         return
 
@@ -641,6 +919,7 @@ def main() -> None:
             label="temporal",
             df=temp_df,
             feature_cols=temp_cols,
+            **common,
         )
         return
 
@@ -653,6 +932,7 @@ def main() -> None:
             label="mentalbert",
             df=mb_df,
             feature_cols=mb_cols,
+            **common,
         )
         return
 
@@ -665,6 +945,33 @@ def main() -> None:
             label="kitchen_sink",
             df=all_df,
             feature_cols=all_cols,
+            **common,
+        )
+        return
+
+    if args.bonus:
+        bonus_df = load_raw_plus_bonus_features()
+        bonus_cols = discover_feature_cols(build_presence_flags(bonus_df))
+        run_experiment(
+            None,
+            DATA_DIR / "model_results_bonus.json",
+            label="bonus",
+            df=bonus_df,
+            feature_cols=bonus_cols,
+            **common,
+        )
+        return
+
+    if args.everything:
+        everything_df = load_all_features_plus_bonus()
+        everything_cols = discover_feature_cols(build_presence_flags(everything_df))
+        run_experiment(
+            None,
+            DATA_DIR / "model_results_everything.json",
+            label="everything",
+            df=everything_df,
+            feature_cols=everything_cols,
+            **common,
         )
         return
 
@@ -677,6 +984,7 @@ def main() -> None:
             label="combined",
             df=combined_df,
             feature_cols=combined_cols,
+            **common,
         )
         return
 
@@ -689,7 +997,7 @@ def main() -> None:
         results_path  = args.results
         label         = args.label
 
-    run_experiment(features_path, results_path, label=label)
+    run_experiment(features_path, results_path, label=label, **common)
 
 
 if __name__ == "__main__":
