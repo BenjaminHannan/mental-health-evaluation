@@ -44,9 +44,9 @@ FEATURES_OUT  = DATA_DIR / "features_mentalbert.parquet"
 # the mental-roberta mirror is sometimes open. If both fail, a
 # domain-general sentence encoder is used as a documented fallback.
 MODEL_CANDIDATES = [
+    "mental/mental-bert-base-uncased",
     "AIMH/mental-roberta-base",
     "mental/mental-roberta-base",
-    "mental/mental-bert-base-uncased",
     "sentence-transformers/all-mpnet-base-v2",
 ]
 MAX_LEN       = 256
