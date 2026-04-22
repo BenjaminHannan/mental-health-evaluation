@@ -1,0 +1,49 @@
+{
+  "cv_seed": 42,
+  "n": 505,
+  "n_features": 121,
+  "classes": [
+    "crisis",
+    "neither",
+    "recovery"
+  ],
+  "class_counts": {
+    "crisis": 68,
+    "neither": 383,
+    "recovery": 54
+  },
+  "gpu_enabled": true,
+  "winner": {
+    "n_boot": 2000,
+    "n_degenerate": 0,
+    "macro_roc_auc": {
+      "point": 0.7699417255827957,
+      "mean": 0.7699553422400824,
+      "std": 0.02197991353009576,
+      "ci_low": 0.7251565712311335,
+      "ci_high": 0.8124577417354736
+    },
+    "macro_f1": {
+      "point": 0.5004308559526776,
+      "mean": 0.4991216799228667,
+      "std": 0.026324202344327592,
+      "ci_low": 0.4485357428735736,
+      "ci_high": 0.5511898164584239
+    }
+  },
+  "paired_vs_v1": {
+    "n_boot": 2000,
+    "n_degenerate": 0,
+    "observed_delta": 0.03446573446393042,
+    "mean_delta": 0.034542885826877014,
+    "std_delta": 0.018250975387538157,
+    "ci_low": -0.002333616476563405,
+    "ci_high": 0.06862713144909909,
+    "p_one_sided": 0.0335,
+    "p_two_sided": 0.067,
+    "auc_A_point": 0.7699417255827957,
+    "auc_B_point": 0.7354759911188653,
+    "auc_A_mean": 0.7699553422400824,
+    "auc_B_mean": 0.7354124564132055
+  }
+}
